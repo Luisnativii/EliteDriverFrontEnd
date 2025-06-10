@@ -1,43 +1,73 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import Sidebar from './Sidebar';
+import Header from './Header';
 
 const Layout = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if screen is mobile on mount and when window resizes
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Initial check
+    checkIfMobile();
+
+    // Set sidebar to closed by default on mobile
+    if (window.innerWidth < 768) {
+      setShowSidebar(false);
+    }
+
+    // Add event listener for resize
+    window.addEventListener('resize', checkIfMobile);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+
+  const toggleSidebar = () => {
+    setShowSidebar(!showSidebar);
+  };
+
+  if (!user?.isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <p className="text-lg text-gray-600">No autorizado. Por favor, inicie sesión.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">
-                EliteDrive - {user?.role === 'ADMIN' ? 'Admin Panel' : 'Customer Portal'}
-              </h1>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                Bienvenido, {user?.firstName || user?.name}
-              </span>
-              <button
-                onClick={logout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Cerrar Sesión
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="flex h-screen w-screen overflow-hidden relative bg-gray-50">
+      {/* Mobile sidebar overlay */}
+      {isMobile && showSidebar && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-20" onClick={toggleSidebar}></div>
+      )}
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <Outlet />
+      {/* Sidebar with conditional positioning */}
+      {showSidebar && (
+        <div className={`
+          transition-all duration-300
+          ${isMobile ? 'fixed top-0 left-0 h-screen z-30' : 'relative'}
+        `}>
+          <Sidebar toggleSidebar={toggleSidebar} isMobile={isMobile} />
         </div>
-      </main>
+      )}
+
+      {/* Main content */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <Header toggleSidebar={toggleSidebar} showSidebar={showSidebar} />
+        <main className="flex-1 overflow-auto bg-gray-50 overflow-x-auto hide-scrollbar-x ">
+          <div className="p-6">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
