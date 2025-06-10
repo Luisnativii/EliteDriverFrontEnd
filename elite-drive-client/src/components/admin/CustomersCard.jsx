@@ -1,9 +1,9 @@
-const UsersCard = () => {
+const CustomersCard = () => {
     return(
         <div>
-            <h1>UsersCard</h1>
+            <h1>CustomersCard</h1>
         </div>
     );
 }
 
-export default UsersCard;
+export default CustomersCard;
