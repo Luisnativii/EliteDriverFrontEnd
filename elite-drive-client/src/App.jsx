@@ -13,6 +13,7 @@ import ReservationPage from './pages/customer/ReservationPage';
 import VehiclesPage from './pages/customer/VehiclesPage';
 import VehicleDetailPage from './pages/customer/VehicleDetailPage';
 import LoginTemp from './pages/auth/LoginTemp';
+import Login from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 
 const App = () => (
@@ -20,7 +21,7 @@ const App = () => (
     <Router>
       <Routes>
         {/* Public routes */}
-        <Route path="/login" element={<LoginTemp />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/register" element={<RegisterPage />} />
         
         {/* Root redirect */}
