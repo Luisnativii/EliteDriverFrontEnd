@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: ["class"],
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
     './index.html',
@@ -61,29 +60,9 @@ export default {
           DEFAULT: "#000000",      // Texto negro (para seccion con imagen y con blanco)
           dark: "#4E504D",         //  gris si quieres usarlo
         },
-        border: "#FF0202",
-        input: "#FF0202",
-        ring: "#FF0202",
-        background: "#FF0202",
-        foreground: "#FF0202",
-        destructive: {
-          DEFAULT: "#FF0202",
-          foreground: "#FF0202",
-        },
-        muted: {
-          DEFAULT: "#FF0202",
-          foreground: "#FF0202",
-        },
-        popover: {
-          DEFAULT: "#FF0202",
-          foreground: "#FF0202",
-        },
-        card: {
-          DEFAULT: "#FF0202",
-          foreground: "#FF0202",
-        },
       },
     },
   },
+  variants: [],
   plugins: [],
 }

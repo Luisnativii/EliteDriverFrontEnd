@@ -1,75 +1,78 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import Sidebar from './Sidebar';
-import Header from './Header';
+import { Menu, X, Bell, Search } from 'lucide-react';
 
-const Layout = () => {
-  const { user } = useAuth();
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Check if screen is mobile on mount and when window resizes
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    // Initial check
-    checkIfMobile();
-
-    // Set sidebar to closed by default on mobile
-    if (window.innerWidth < 768) {
-      setShowSidebar(false);
-    }
-
-    // Add event listener for resize
-    window.addEventListener('resize', checkIfMobile);
-
-    // Cleanup
-    return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
-
-  const toggleSidebar = () => {
-    setShowSidebar(!showSidebar);
-  };
-
-  if (!user?.isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p className="text-lg text-gray-600">No autorizado. Por favor, inicie sesión.</p>
-      </div>
-    );
-  }
+const Header = ({ toggleSidebar, showSidebar }) => {
+  const { user, logout } = useAuth();
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden relative bg-gray-50">
-      {/* Mobile sidebar overlay */}
-      {isMobile && showSidebar && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-20" onClick={toggleSidebar}></div>
-      )}
+    <header className="bg-white/90 backdrop-blur-md border-b border-gray-200/50 h-16 flex-shrink-0 transition-all duration-300 shadow-sm">
+      <div className="h-full px-4 flex items-center justify-between">
+        {/* Left side - Menu toggle and logo */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 hover:scale-105"
+            title={showSidebar ? "Cerrar sidebar" : "Abrir sidebar"}
+          >
+            {/* Icono animado que cambia entre Menu y X */}
+            <div className="relative w-5 h-5">
+              <Menu 
+                size={20} 
+                className={`absolute inset-0 text-gray-700 transition-all duration-300 ${
+                  showSidebar ? 'opacity-0 rotate-90 scale-0' : 'opacity-100 rotate-0 scale-100'
+                }`} 
+              />
+              <X 
+                size={20} 
+                className={`absolute inset-0 text-gray-700 transition-all duration-300 ${
+                  showSidebar ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0'
+                }`} 
+              />
+            </div>
+          </button>
 
-      {/* Sidebar with conditional positioning */}
-      {showSidebar && (
-        <div className={`
-          transition-all duration-300
-          ${isMobile ? 'fixed top-0 left-0 h-screen z-30' : 'relative'}
-        `}>
-          <Sidebar toggleSidebar={toggleSidebar} isMobile={isMobile} />
-        </div>
-      )}
-
-      {/* Main content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Header toggleSidebar={toggleSidebar} showSidebar={showSidebar} />
-        <main className="flex-1 overflow-auto bg-gray-50 overflow-x-auto hide-scrollbar-x ">
-          <div className="p-6">
-            <Outlet />
+          {/* Logo - se oculta cuando el sidebar está abierto en desktop para evitar duplicación */}
+          <div className={`transition-all duration-300 ${showSidebar ? 'md:opacity-0 md:scale-0' : 'opacity-100 scale-100'}`}>
+            <img
+              src="/EliteDrive.svg"
+              alt="Logo"
+              className="h-8 w-auto"
+            />
           </div>
-        </main>
+        </div>
+
+        {/* Right side - Actions */}
+        <div className="flex items-center gap-3">
+          {/* Search button */}
+          <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <Search size={18} className="text-gray-600" />
+          </button>
+
+          {/* Notifications */}
+          <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative">
+            <Bell size={18} className="text-gray-600" />
+            {/* Notification badge */}
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+          </button>
+
+          {/* User info - se adapta al estado del sidebar */}
+          <div className={`flex items-center gap-2 transition-all duration-300 ${
+            showSidebar ? 'md:opacity-0 md:scale-0' : 'opacity-100 scale-100'
+          }`}>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-gray-600 to-gray-700 flex items-center justify-center">
+              <span className="text-white text-xs font-semibold">
+                {user?.firstName?.charAt(0) || user?.name?.charAt(0) || 'U'}
+              </span>
+            </div>
+            <span className="text-sm font-medium text-gray-700 hidden sm:block">
+              {user?.firstName || user?.name || 'Usuario'}
+            </span>
+          </div>
+        </div>
       </div>
-    </div>
+    </header>
   );
 };
 
-export default Layout;
+export default Header;
