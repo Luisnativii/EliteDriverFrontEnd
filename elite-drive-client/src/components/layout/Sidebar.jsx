@@ -1,115 +1,165 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import Sidebar from './Sidebar';
-import Header from './Header';
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import { createContext, useState, useEffect } from "react";
+import { 
+  ChevronLeft, 
+  Home, 
+  Car, 
+  Calendar, 
+  Settings, 
+  User, 
+  LogOut,
+  Users,
+  Wrench,
+  Clock,
+  BookOpen
+} from "lucide-react";
 
-const Layout = () => {
-  const { user } = useAuth();
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+// Mapeo de roles a configuración
+const roleConfig = {
+  admin: { 
+    title: "Panel Administrativo",
+    subtitle: "EliteDrive Admin"
+  },
+  customer: { 
+    title: "Portal Cliente",
+    subtitle: "EliteDrive"
+  }
+};
 
-  // Check if screen is mobile on mount and when window resizes
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+// Mapeo de iconos
+const iconMap = {
+  Home,
+  Car,
+  Calendar,
+  Settings,
+  User,
+  Users,
+  Wrench,
+  Clock,
+  BookOpen,
+  LogOut
+};
 
-    // Initial check
-    checkIfMobile();
+const SidebarContext = createContext();
 
-    // Set sidebar to closed by default on mobile
-    if (window.innerWidth < 768) {
-      setShowSidebar(false);
-    }
+const Sidebar = ({ toggleSidebar, isMobile }) => {
+  const { user, logout } = useAuth();
+  const location = useLocation();
+  const role = user?.routeRole || "customer";
 
-    // Add event listener for resize
-    window.addEventListener('resize', checkIfMobile);
 
-    // Cleanup
-    return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
-
-  const toggleSidebar = () => {
-    setShowSidebar(!showSidebar);
+  const menuOptions = {
+    admin: [
+      { name: "Dashboard", path: "/admin", icon: "Home" },
+      { name: "Gestión de Vehículos", path: "/admin/vehicle", icon: "Car" },
+      { name: "Gestión de Reservas", path: "/admin/reservation", icon: "Calendar" },
+      { name: "Mantenimiento", path: "/admin/maintenance", icon: "Wrench" },
+    ],
+    customer: [
+      { name: "Inicio", path: "/customer", icon: "Home" },
+      { name: "Vehículos", path: "/customer/vehicles", icon: "Car" },
+      { name: "Hacer Reserva", path: "/customer/reservation-page", icon: "Calendar" },
+      { name: "Mis Reservas", path: "/customer/my-reservations", icon: "BookOpen" },
+    ],
   };
 
-  if (!user?.isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p className="text-lg text-gray-600">No autorizado. Por favor, inicie sesión.</p>
-      </div>
-    );
-  }
+  const handleLinkClick = () => {
+    if (isMobile) {
+      toggleSidebar();
+    }
+  };
+
+  const isActivePath = (path) => {
+    if (path === `/${role}`) {
+      return location.pathname === path;
+    }
+    return location.pathname.startsWith(path);
+  };
 
   return (
-    <div className="flex h-screen bg-neutral-50 w-screen overflow-hidden">
-      {/* Mobile sidebar overlay */}
-      {isMobile && showSidebar && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-20 transition-opacity duration-300" 
-          onClick={toggleSidebar}
-        />
-      )}
+    <aside className="h-full">
+      <nav className="h-full flex flex-col bg-white border-r shadow-sm min-w-64">
+        {/* Header del Sidebar */}
+        <div className="px-4 pt-6 pb-4 flex justify-between items-center border-b">
+          <div className="flex flex-col">
+            <span className="font-bold text-xl text-blue-600">{roleConfig[role].subtitle}</span>
+            <span className="text-sm text-gray-500">{roleConfig[role].title}</span>
+          </div>
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            title={isMobile ? "Cerrar sidebar" : "Colapsar sidebar"}
+          >
+            <ChevronLeft size={20} className="text-gray-600" />
+          </button>
+        </div>
 
-      {/* Sidebar with smooth transitions */}
-      <div className={`
-        transition-all duration-300 ease-in-out
-        ${showSidebar 
-          ? (isMobile ? 'fixed top-0 left-0 h-screen z-30 translate-x-0' : 'relative translate-x-0 w-64') 
-          : (isMobile ? 'fixed top-0 left-0 h-screen z-30 -translate-x-full' : 'relative -translate-x-full w-0')
-        }
-      `}>
-        <Sidebar toggleSidebar={toggleSidebar} isMobile={isMobile} />
-      </div>
+        {/* Menú de navegación */}
+        <SidebarContext.Provider value={{ open: true }}>
+          <ul className="flex-1 px-3 py-4 space-y-1">
+            {menuOptions[role]?.map(({ name, path, icon }) => {
+              const IconComponent = iconMap[icon];
+              const isActive = isActivePath(path);
+              
+              return (
+                <li key={path}>
+                  <Link
+                    to={path}
+                    onClick={handleLinkClick}
+                    className={`
+                      flex items-center gap-3 px-3 py-3 rounded-lg
+                      font-medium transition-all duration-200
+                      ${isActive 
+                        ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-600' 
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
+                      }
+                    `}
+                  >
+                    {IconComponent && (
+                      <IconComponent 
+                        size={20} 
+                        className={isActive ? 'text-blue-600' : 'text-gray-500'} 
+                      />
+                    )}
+                    <span className="text-sm">{name}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </SidebarContext.Provider>
 
-      {/* Main content area */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Header siempre visible */}
-        <Header toggleSidebar={toggleSidebar} showSidebar={showSidebar} />
-        
-        {/* Main content with smooth transitions */}
-        <main className={`
-          flex-1 overflow-auto bg-neutral-50 transition-all duration-300
-          ${showSidebar && !isMobile ? 'ml-0' : 'ml-0'}
-        `}>
-          <div className="p-6">
-            {/* Contenido principal con animación de entrada */}
-            <div className="animate-fade-in">
-              <Outlet />
+        {/* Footer del usuario */}
+        <div className="border-t p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <User size={20} className="text-blue-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-medium text-sm text-gray-900 truncate">
+                {user?.firstName || user?.name || "Usuario"}
+              </h4>
+              <span className="text-xs text-gray-500 truncate block">
+                {user?.email || "No disponible"}
+              </span>
+              <span className="text-xs text-blue-600 font-medium">
+                {user?.role === 'ADMIN' ? 'Administrador' : 'Cliente'}
+              </span>
             </div>
           </div>
-        </main>
-      </div>
-
-      {/* Estilos CSS personalizados */}
-      <style jsx>{`
-        .animate-fade-in {
-          animation: fadeIn 0.3s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .hide-scrollbar-x {
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-
-        .hide-scrollbar-x::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-    </div>
+          
+          <button 
+            onClick={logout} 
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <LogOut size={16} />
+            <span>Cerrar Sesión</span>
+          </button>
+        </div>
+      </nav>
+    </aside>
   );
 };
 
-export default Layout;
+export default Sidebar;
