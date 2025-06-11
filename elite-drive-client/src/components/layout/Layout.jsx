@@ -1,14 +1,38 @@
-// components/layout/Layout.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { useLayout } from '../../hooks/useLayout';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
 const Layout = () => {
   const { user } = useAuth();
-  const { showSidebar, isMobile, toggleSidebar } = useLayout();
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if screen is mobile on mount and when window resizes
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Initial check
+    checkIfMobile();
+
+    // Set sidebar to closed by default on mobile
+    if (window.innerWidth < 768) {
+      setShowSidebar(false);
+    }
+
+    // Add event listener for resize
+    window.addEventListener('resize', checkIfMobile);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+
+  const toggleSidebar = () => {
+    setShowSidebar(!showSidebar);
+  };
 
   if (!user?.isAuthenticated) {
     return (
@@ -22,10 +46,7 @@ const Layout = () => {
     <div className="flex h-screen bg-neutral-600 w-screen overflow-hidden">
       {/* Mobile sidebar overlay */}
       {isMobile && showSidebar && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-20 transition-opacity duration-300" 
-          onClick={toggleSidebar}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-20" onClick={toggleSidebar}></div>
       )}
 
       {/* Sidebar with smooth transitions */}
@@ -49,41 +70,19 @@ const Layout = () => {
          flex-1 overflow-auto transition-all duration-300
           ${showSidebar && !isMobile ? 'ml-0' : 'ml-0'}
         `}>
+          <Sidebar toggleSidebar={toggleSidebar} isMobile={isMobile} />
+        </div>
+      )}
+
+      {/* Main content */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <Header toggleSidebar={toggleSidebar} showSidebar={showSidebar} />
+        <main className="flex-1 overflow-auto bg-gray-50 overflow-x-auto hide-scrollbar-x ">
           <div className="p-6">
-            {/* Contenido principal con animación de entrada */}
-            <div className="animate-fade-in">
-              <Outlet />
-            </div>
+            <Outlet />
           </div>
         </main>
       </div>
-
-      {/* Estilos CSS personalizados */}
-      <style jsx>{`
-        .animate-fade-in {
-          animation: fadeIn 0.3s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .hide-scrollbar-x {
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-
-        .hide-scrollbar-x::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </div>
   );
 };
