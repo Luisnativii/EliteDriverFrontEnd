@@ -1,8 +1,14 @@
+import MainHomeSection from '../../components/customer/MainHomeSection' ;
+import MainInfoSection from '../../components/customer/MainInfoSection' ;
+import MainCarsSelectionSection from '../../components/customer/MainCarsSelectionSection';
+
 
 const HomePage = () => {
     return(
         <div>
-            <h1>xd</h1>
+            <MainHomeSection/>
+            <MainInfoSection/>
+            <MainCarsSelectionSection/>
         </div>
     );
 }
