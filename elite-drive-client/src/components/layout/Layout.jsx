@@ -19,7 +19,7 @@ const Layout = () => {
   }
 
   return (
-    <div className="flex h-screen bg-neutral-50 w-screen overflow-hidden">
+    <div className="flex h-screen bg-neutral-600 w-screen overflow-hidden">
       {/* Mobile sidebar overlay */}
       {isMobile && showSidebar && (
         <div 
@@ -30,23 +30,23 @@ const Layout = () => {
 
       {/* Sidebar with smooth transitions */}
       <div className={`
-        transition-all duration-300 ease-in-out
-        ${showSidebar 
-          ? (isMobile ? 'fixed top-0 left-0 h-screen z-30 translate-x-0' : 'relative translate-x-0 w-64') 
-          : (isMobile ? 'fixed top-0 left-0 h-screen z-30 -translate-x-full' : 'relative -translate-x-full w-0')
-        }
-      `}>
+  transition-all duration-300 ease-in-out
+  ${isMobile 
+    ? `${showSidebar ? 'fixed translate-x-0' : 'fixed -translate-x-full'} top-0 left-0 h-screen z-30`
+    : `${showSidebar ? 'w-64' : 'hidden'} relative`
+  }
+`}>
         <Sidebar toggleSidebar={toggleSidebar} isMobile={isMobile} />
       </div>
 
       {/* Main content area */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="bg-neutral-600 flex flex-col flex-1 overflow-hidden">
         {/* Header siempre visible */}
         <Header toggleSidebar={toggleSidebar} showSidebar={showSidebar} />
         
         {/* Main content with smooth transitions */}
         <main className={`
-          flex-1 overflow-auto bg-neutral-50 transition-all duration-300
+         flex-1 overflow-auto transition-all duration-300
           ${showSidebar && !isMobile ? 'ml-0' : 'ml-0'}
         `}>
           <div className="p-6">

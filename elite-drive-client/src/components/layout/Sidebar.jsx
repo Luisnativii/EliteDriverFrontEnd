@@ -1,115 +1,185 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import Sidebar from './Sidebar';
-import Header from './Header';
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import { createContext, useState, useEffect } from "react";
+import { 
+  ChevronLeft, 
+  Home, 
+  Car, 
+  Calendar, 
+  Settings, 
+  User, 
+  LogOut,
+  Users,
+  Wrench,
+  Clock,
+  BookOpen,
+  Crown,
+  Sparkles
+} from "lucide-react";
 
-const Layout = () => {
-  const { user } = useAuth();
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+// Mapeo de roles a configuración
+const roleConfig = {
+  admin: { 
+    title: "Panel Administrativo",
+    subtitle: "EliteDrive Admin",
+    accent: "from-gray-600 to-gray-700"
+  },
+  customer: { 
+    title: "Portal Cliente",
+    subtitle: "EliteDrive",
+    accent: "from-gray-600 to-gray-700"
+  }
+};
 
-  // Check if screen is mobile on mount and when window resizes
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+// Mapeo de iconos
+const iconMap = {
+  Home,
+  Car,
+  Calendar,
+  Settings,
+  User,
+  Users,
+  Wrench,
+  Clock,
+  BookOpen,
+  LogOut
+};
 
-    // Initial check
-    checkIfMobile();
+const SidebarContext = createContext();
 
-    // Set sidebar to closed by default on mobile
-    if (window.innerWidth < 768) {
-      setShowSidebar(false);
-    }
+const Sidebar = ({ toggleSidebar, isMobile }) => {
+  const { user, logout } = useAuth();
+  const location = useLocation();
+  const role = user?.routeRole || "customer";
 
-    // Add event listener for resize
-    window.addEventListener('resize', checkIfMobile);
-
-    // Cleanup
-    return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
-
-  const toggleSidebar = () => {
-    setShowSidebar(!showSidebar);
+  const menuOptions = {
+    admin: [
+      { name: "Dashboard", path: "/admin", icon: "Home" },
+      { name: "Gestión de Vehículos", path: "/admin/vehicle", icon: "Car" },
+      { name: "Gestión de Reservas", path: "/admin/reservation", icon: "Calendar" },
+      { name: "Mantenimiento", path: "/admin/maintenance", icon: "Wrench" },
+    ],
+    customer: [
+      { name: "Inicio", path: "/customer", icon: "Home" },
+      { name: "Vehículos", path: "/customer/vehicles", icon: "Car" },
+      { name: "Hacer Reserva", path: "/customer/reservation-page", icon: "Calendar" },
+      { name: "Mis Reservas", path: "/customer/my-reservations", icon: "BookOpen" },
+    ],
   };
 
-  if (!user?.isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p className="text-lg text-gray-600">No autorizado. Por favor, inicie sesión.</p>
-      </div>
-    );
-  }
+  const handleLinkClick = () => {
+    if (isMobile) {
+      toggleSidebar();
+    }
+  };
+
+  const isActivePath = (path) => {
+    if (path === `/${role}`) {
+      return location.pathname === path;
+    }
+    return location.pathname.startsWith(path);
+  };
 
   return (
-    <div className="flex h-screen bg-neutral-50 w-screen overflow-hidden">
-      {/* Mobile sidebar overlay */}
-      {isMobile && showSidebar && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-20 transition-opacity duration-300" 
-          onClick={toggleSidebar}
-        />
-      )}
-
-      {/* Sidebar with smooth transitions */}
-      <div className={`
-        transition-all duration-300 ease-in-out
-        ${showSidebar 
-          ? (isMobile ? 'fixed top-0 left-0 h-screen z-30 translate-x-0' : 'relative translate-x-0 w-64') 
-          : (isMobile ? 'fixed top-0 left-0 h-screen z-30 -translate-x-full' : 'relative -translate-x-full w-0')
-        }
-      `}>
-        <Sidebar toggleSidebar={toggleSidebar} isMobile={isMobile} />
-      </div>
-
-      {/* Main content area */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Header siempre visible */}
-        <Header toggleSidebar={toggleSidebar} showSidebar={showSidebar} />
+    <aside className="h-full">
+      <nav className="h-full flex flex-col bg-black border-r border-gray-700/50 shadow-2xl min-w-64 relative">
         
-        {/* Main content with smooth transitions */}
-        <main className={`
-          flex-1 overflow-auto bg-neutral-50 transition-all duration-300
-          ${showSidebar && !isMobile ? 'ml-0' : 'ml-0'}
-        `}>
-          <div className="p-6">
-            {/* Contenido principal con animación de entrada */}
-            <div className="animate-fade-in">
-              <Outlet />
+        {/* Header del Sidebar */}
+        <div className="relative px-6 pt-8 pb-6 flex justify-between items-center">
+          <div className="flex flex-col">
+            <img
+            src="/EliteDrive.svg"
+            alt="Logo"
+            className="h-12 w-auto invert"></img>
+          </div>
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-xl border-none hover:bg-white/10 transition-all duration-300 backdrop-blur-sm border border-white/10"
+            title={isMobile ? "Cerrar sidebar" : "Colapsar sidebar"}
+          >
+            <ChevronLeft size={20} className="text-slate-300" />
+          </button>
+        </div>
+
+        {/* Menú de navegación */}
+        <SidebarContext.Provider value={{ open: true }}>
+          <ul className="flex-1 px-4 py-6 space-y-2">
+            {menuOptions[role]?.map(({ name, path, icon }) => {
+              const IconComponent = iconMap[icon];
+              const isActive = isActivePath(path);
+              
+              return (
+                <li key={path}>
+                  <Link
+                    to={path}
+                    onClick={handleLinkClick}
+                    className={`
+                      group flex items-center gap-4 px-4 py-3.5 rounded-xl
+                      font-medium transition-all duration-300 relative overflow-hidden
+                      ${isActive 
+                        ? `bg-gradient-to-r ${roleConfig[role].accent} text-white shadow-lg shadow-gray-500/25 transform scale-105` 
+                        : 'text-slate-300 hover:bg-black/5 hover:text-white hover:transform hover:translate-x-1'
+                      }
+                    `}
+                  >
+                    {/* Efecto de brillo en hover */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                    
+                    {IconComponent && (
+                      <div className={`relative z-10 ${isActive ? 'animate-pulse' : ''}`}>
+                        <IconComponent 
+                          size={20} 
+                          className={`transition-colors duration-300 ${
+                            isActive ? 'text-white drop-shadow-lg' : 'text-slate-400 group-hover:text-white'
+                          }`} 
+                        />
+                      </div>
+                    )}
+                    <span className={`text-sm relative z-10 ${isActive ? 'font-semibold' : ''}`}>
+                      {name}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </SidebarContext.Provider>
+
+        {/* Footer del usuario */}
+        <div className="relative border-t border-slate-700/50 p-6">
+          <div className="relative flex items-center gap-4 mb-4">
+            <div className="relative">
+              <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${roleConfig[role].accent} flex items-center justify-center shadow-lg`}>
+                <User size={20} className="text-white" />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-semibold text-sm text-white truncate">
+                  {user?.firstName || user?.name || "Usuario"}
+                </h4>
+                {role === 'admin'}
+              </div>
+              <span className="text-xs text-slate-400 truncate block">
+                {user?.email || "No disponible"}
+              </span>
+              <span className={`text-xs font-medium bg-gradient-to-r ${roleConfig[role].accent} bg-clip-text text-neutral-500`}>
+                {user?.role === 'ADMIN' ? 'Administrador' : 'Cliente Premium'}
+              </span>
             </div>
           </div>
-        </main>
-      </div>
-
-      {/* Estilos CSS personalizados */}
-      <style jsx>{`
-        .animate-fade-in {
-          animation: fadeIn 0.3s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .hide-scrollbar-x {
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-
-        .hide-scrollbar-x::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-    </div>
+          
+          <button 
+            onClick={logout} 
+            className="group w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-300 border border-red-500/20 hover:border-red-500/40 backdrop-blur-sm"
+          >
+            <LogOut size={16} className="group-hover:transform group-hover:translate-x-1 transition-transform duration-300" />
+            <span className="font-medium">Cerrar Sesión</span>
+          </button>
+        </div>
+      </nav>
+    </aside>
   );
 };
 
-export default Layout;
+export default Sidebar;

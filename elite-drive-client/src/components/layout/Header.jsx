@@ -15,12 +15,17 @@ const Header = ({ toggleSidebar, showSidebar }) => {
         {/* Left side - Menu toggle and logo */}
         <div className="flex items-center gap-4">
           <button
-            onClick={toggleSidebar}
-            className="p-2 rounded-lg invert hover:bg-gray-100 transition-colors"
-            title={showSidebar ? "Ocultar sidebar" : "Mostrar sidebar"}
-          >
-            <Menu size={20} className="text-black" />
-          </button>
+  onClick={() => {
+    if (!showSidebar) toggleSidebar(); // Solo abrir si está cerrado
+  }}
+  className={`
+    p-2 rounded-lg invert hover:bg-gray-100 transition-colors
+    ${showSidebar ? 'hidden' : 'block'} 
+  `}
+  title="Mostrar sidebar"
+>
+  <Menu size={20} className="text-black" />
+</button>
 
           <img
             src="/EliteDrive.svg"
