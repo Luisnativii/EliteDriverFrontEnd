@@ -1,25 +1,23 @@
+import { useNavigate } from 'react-router-dom';
 import SUVImage from '../../assets/png/SUVOptionMain.png';
 import SedanImage from '../../assets/png/SedanOptionMain.png';
 import PickUpImage from '../../assets/png/PickupOptionMain.png';
 
 const MainCarsSelectionSection = () => {
+    const navigate = useNavigate();
     // Funciones para manejar los clicks de navegación
     const handleSedanClick = () => {
-        // Aquí puedes agregar la lógica de navegación para sedán
-        console.log('Navegando a página de sedán');
-        // Por ejemplo: navigate('/sedan') o window.location.href = '/sedan'
+       navigate('/customer/vehicle-type/sedan');
     };
 
     const handleSUVClick = () => {
-        // Aquí puedes agregar la lógica de navegación para SUV
-        console.log('Navegando a página de SUV');
-        // Por ejemplo: navigate('/suv') o window.location.href = '/suv'
+         navigate('/customer/vehicle-type/suv');
+        
     };
 
     const handlePickupClick = () => {
-        // Aquí puedes agregar la lógica de navegación para pickup
-        console.log('Navegando a página de pickup');
-        // Por ejemplo: navigate('/pickup') o window.location.href = '/pickup'
+             navigate('/customer/vehicle-type/pickup');
+        
     };
 
 
