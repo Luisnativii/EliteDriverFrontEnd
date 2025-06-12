@@ -15,6 +15,7 @@ import VehicleDetailPage from './pages/customer/VehicleDetailPage';
 import LoginTemp from './pages/auth/LoginTemp';
 import Login from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
+import VehicleTypeDetailPage from './pages/customer/VehicleTypeDetailPage'; // Descomenta cuando crees el archivo
 
 const App = () => (
   <AuthProvider>
@@ -49,6 +50,8 @@ const App = () => (
           <Route path="reservation-page" element={<ReservationPage />} />
           <Route path="vehicles" element={<VehiclesPage />} />
           <Route path="vehicles/:id" element={<VehicleDetailPage />} />
+           {/*  ruta para tipos de vehículos */}
+          <Route path="vehicle-type/:vehicleType" element={<VehicleTypeDetailPage />} />
         </Route>
         
         {/* Catch all route */}

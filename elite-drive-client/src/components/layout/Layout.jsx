@@ -58,7 +58,7 @@ const Layout = () => {
       </div>
 
       {/* Estilos CSS personalizados mejorados */}
-      <style jsx>{`
+      <style >{`
         .animate-fade-in {
           animation: fadeIn 0.3s ease-in-out;
         }
