@@ -6,51 +6,62 @@ const Header = ({ toggleSidebar, showSidebar }) => {
   const { user, logout } = useAuth();
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex-shrink-0 ">
-      <div className="h-full px-4 flex items-center justify-between">
-        {/* Left side - Menu toggle and search */}
-        <div className="flex items-center gap-4">
+    <header className={`
+      fixed top-0 left-0 right-0 z-50
+      bg-black/20 backdrop-blur-md border-b border-white/10
+      h-20 flex-shrink-0 transition-all duration-300 ease-in-out
+      ${showSidebar ? 'opacity-0 -translate-y-full pointer-events-none' : 'opacity-100 translate-y-0'}
+    `}>
+      <div className="h-full p-0 flex items-center justify-between max-w-7xl mx-auto">
+        {/* Left side - Menu toggle and logo */}
+        <div className="flex items-center gap-6">
           <button
-  onClick={() => {
-    if (!showSidebar) toggleSidebar(); // Solo abrir si está cerrado
-  }}
-  className={`
-    p-2 rounded-lg invert hover:bg-gray-100 transition-colors
-    ${showSidebar ? 'hidden' : 'block'} 
-  `}
-  title="Mostrar sidebar"
->
-  <Menu size={20} className="text-black" />
-</button>
-
-          {/* Search bar - hidden on mobile */}
-          <div className="hidden md:flex items-center bg-gray-50 rounded-lg px-3 py-2 min-w-96 ">
-            <Search size={16} className="text-gray-400 mr-2" />
-            <input
-              type="text"
-              placeholder="Buscar..."
-              className="bg-transparent border-none outline-none text-sm text-gray-700 flex-1"
+            onClick={() => {
+              if (!showSidebar) toggleSidebar();
+            }}
+            className={`
+              p-1 rounded-xl bg-transparent hover:bg-white/10 
+              transition-all duration-200 
+              hover:scale-105 active:scale-95
+              ${showSidebar ? 'hidden' : 'block'}
+            `}
+            title="Mostrar sidebar"
+          >
+            <Menu size={20} className="text-white" />
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <img
+              src="/EliteDrive.svg"
+              alt="Logo"
+              className="h-12 w-auto brightness-0 invert"
             />
+            
           </div>
         </div>
 
-        {/* Right side - User info and actions */}
+        {/* Right side - Search and notifications */}
         <div className="flex items-center gap-4">
-          {/* Notification bell */}
-          
+          {/* Search button */}
+          <button className="
+            p-1 rounded-xl bg-transparent hover:bg-white/10
+            border-none transition-all duration-200 
+            hover:scale-105 active:scale-95
+          ">
+            <Search size={18} className="text-white" />
+          </button>
 
-          {/* User dropdown */}
-          <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-gray-900">
-                {user?.firstName || user?.name || 'Usuario'}
-              </p>
-              <p className="text-xs text-gray-500">
-                {user?.role === 'ADMIN' ? 'Administrador' : 'Cliente'}
-              </p>
-            </div>
-            
-          </div>
+          {/* Notifications */}
+          <button className="
+            p-1 rounded-xl bg-transparent hover:bg-white/10
+            border-none transition-all duration-200 
+            hover:scale-105 active:scale-95 relative
+          ">
+            <Bell size={18} className="text-white" />
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-black/20"></span>
+          </button>
+
+          
         </div>
       </div>
     </header>

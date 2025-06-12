@@ -21,7 +21,7 @@ const App = () => (
     <Router>
       <Routes>
         {/* Public routes */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<LoginTemp />} />
         <Route path="/register" element={<RegisterPage />} />
         
         {/* Root redirect */}

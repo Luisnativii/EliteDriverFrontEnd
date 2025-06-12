@@ -1,38 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useLayout } from '../../hooks/useLayout';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
 const Layout = () => {
   const { user } = useAuth();
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Check if screen is mobile on mount and when window resizes
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    // Initial check
-    checkIfMobile();
-
-    // Set sidebar to closed by default on mobile
-    if (window.innerWidth < 768) {
-      setShowSidebar(false);
-    }
-
-    // Add event listener for resize
-    window.addEventListener('resize', checkIfMobile);
-
-    // Cleanup
-    return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
-
-  const toggleSidebar = () => {
-    setShowSidebar(!showSidebar);
-  };
+  const { showSidebar, isMobile, toggleSidebar } = useLayout();
 
   if (!user?.isAuthenticated) {
     return (
@@ -43,46 +18,86 @@ const Layout = () => {
   }
 
   return (
-    <div className="flex h-screen bg-neutral-600 w-screen overflow-hidden">
+    <div className="flex h-screen bg-neutral-900 w-screen overflow-hidden">
       {/* Mobile sidebar overlay */}
       {isMobile && showSidebar && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-20" onClick={toggleSidebar}></div>
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300"
+          onClick={toggleSidebar}
+        />
       )}
 
       {/* Sidebar with smooth transitions */}
       <div className={`
-  transition-all duration-300 ease-in-out
-  ${isMobile 
-    ? `${showSidebar ? 'fixed translate-x-0' : 'fixed -translate-x-full'} top-0 left-0 h-screen z-30`
-    : `${showSidebar ? 'w-64' : 'hidden'} relative`
-  }
-`}>
+        transition-all duration-300 ease-in-out
+        ${isMobile 
+          ? `${showSidebar ? 'fixed translate-x-0' : 'fixed -translate-x-full'} top-0 left-0 h-screen z-50`
+          : `${showSidebar ? 'w-64' : 'w-0'} relative overflow-hidden`
+        }
+      `}>
         <Sidebar toggleSidebar={toggleSidebar} isMobile={isMobile} />
       </div>
 
       {/* Main content area */}
-      <div className="bg-neutral-600 flex flex-col flex-1 overflow-hidden">
+      <div className="bg-neutral-900 flex flex-col flex-1 overflow-hidden">
         {/* Header siempre visible */}
-        <Header toggleSidebar={toggleSidebar} showSidebar={showSidebar} />
-        
-        {/* Main content with smooth transitions */}
-        <main className={`
-         flex-1 overflow-auto transition-all duration-300
-          ${showSidebar && !isMobile ? 'ml-0' : 'ml-0'}
-        `}>
-          <Sidebar toggleSidebar={toggleSidebar} isMobile={isMobile} />
-        </div>
-      )}
-
-      {/* Main content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Header toggleSidebar={toggleSidebar} showSidebar={showSidebar} />
-        <main className="flex-1 overflow-auto bg-gray-50 overflow-x-auto hide-scrollbar-x ">
-          <div className="p-6">
-            <Outlet />
+        <Header toggleSidebar={toggleSidebar} showSidebar={showSidebar && !isMobile} />
+                
+        {/* Main content with padding-top for fixed header */}
+        <main className="
+          flex-1 overflow-auto transition-all duration-300
+          custom-scrollbar
+        ">
+          <div className="min-h-full">
+            {/* Contenido principal con animación de entrada */}
+            <div className="animate-fade-in">
+              <Outlet />
+            </div>
           </div>
         </main>
       </div>
+
+      {/* Estilos CSS personalizados mejorados */}
+      <style jsx>{`
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* Scrollbar personalizado más delgado con fondo negro */
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color:rgb(56, 58, 61) #000000;
+        }
+                
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+                
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #000000;
+          border-radius: 2px;
+        }
+                
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #6b7280;
+          border-radius: 2px;
+        }
+                
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background:rgb(68, 71, 76);
+        }
+      `}</style>
     </div>
   );
 };
