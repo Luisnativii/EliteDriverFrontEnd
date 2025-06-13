@@ -13,7 +13,7 @@ const DetailCTASection =({ title, onViewVehicles, onReserve }) =>  (
                     <div className="space-x-4">
                         <button
                             onClick={onViewVehicles}
-                            className="bg-white text-neutral-800 px-8 py-3 rounded-full font-semibold hover:bg-neutral-100 transition-colors"
+                            className="border cursor-pointer text-white border-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-neutral-800 transition-colors"
                         >
                             Ver Modelos
                         </button>

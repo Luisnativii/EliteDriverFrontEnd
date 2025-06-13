@@ -47,7 +47,7 @@ const App = () => (
         }>
           <Route index element={<HomePage />} />
           <Route path="my-reservations" element={<MyReservationPage />} />
-          <Route path="reservation-page" element={<ReservationPage />} />
+          <Route path="reservation-page/:vehicleId" element={<ReservationPage />} />
           <Route path="vehicles" element={<VehiclesPage />} />
           <Route path="vehicles/:id" element={<VehicleDetailPage />} />
            {/*  ruta para tipos de vehículos */}
