@@ -1,4 +1,5 @@
 import CarroPaginaHomeBanner from '../../assets/jpg/CarroPaginaHomeBanner.jpg';
+import DateForm from '../../components/forms/DateForm';
 
 const MainHomeSection = () => {
     return (
@@ -20,65 +21,8 @@ const MainHomeSection = () => {
                         Encuentra tu libertad en cada viaje
                     </p>
                 </div>
-
                 {/* Formulario de reserva con glassmorphism */}
-                <div className="
-                    bg-white/10 backdrop-blur-md p-6 rounded-2xl 
-                    shadow-2xl border border-white/20 min-w-[700px] 
-                    hover:bg-white/15 transition-all duration-300
-                ">
-                    <h3 className="text-white text-lg font-semibold mb-4 text-center">
-                        Reserva tu vehículo
-                    </h3>
-                    
-                    <div className="flex flex-col gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="flex-1">
-                                <label className="text-white/90 font-medium text-sm block mb-2">
-                                    Desde:
-                                </label>
-                                <input
-                                    type="date"
-                                    className="
-                                        w-full bg-white/20 backdrop-blur-sm border border-white/30 
-                                        rounded-lg px-4 py-3 text-white placeholder-white/60
-                                        focus:outline-none focus:ring-2 focus:ring-white/50 
-                                        focus:border-transparent transition-all duration-200
-                                        hover:bg-white/25
-                                    "
-                                />
-                            </div>
-
-                            <div className="flex-1">
-                                <label className="text-white/90 font-medium text-sm block mb-2">
-                                    Hasta:
-                                </label>
-                                <input
-                                    type="date"
-                                    className="
-                                        w-full bg-white/20 backdrop-blur-sm border border-white/30 
-                                        rounded-lg px-4 py-3 text-white placeholder-white/60
-                                        focus:outline-none focus:ring-2 focus:ring-white/50 
-                                        focus:border-transparent transition-all duration-200
-                                        hover:bg-white/25
-                                    "
-                                />
-                            </div>
-                        </div>
-
-                        {/* Botón de búsqueda */}
-                        <button className="
-                            w-full bg-gradient-to-r from-black to-neutral-500 
-                            hover:from-black hover:to-white
-                            text-white font-semibold py-3 px-6 rounded-lg
-                            transition-all duration-200 transform hover:scale-105
-                            shadow-lg hover:shadow-xl
-                            focus:outline-none focus:ring-2 focus:ring-white/50
-                        ">
-                            Buscar Vehículos
-                        </button>
-                    </div>
-                </div>
+                <DateForm variant="home" />
             </div>
         </section>
     );

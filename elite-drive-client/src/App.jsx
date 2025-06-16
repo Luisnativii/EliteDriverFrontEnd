@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from "./context/AuthContext";
+import { DateProvider } from './context/DateContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import Layout from './components/layout/Layout';
 import DashboardPage from './pages/admin/DashboardPage';
@@ -19,6 +20,7 @@ import VehicleTypeDetailPage from './pages/customer/VehicleTypeDetailPage'; // D
 
 const App = () => (
   <AuthProvider>
+    <DateProvider>
     <Router>
       <Routes>
         {/* Public routes */}
@@ -58,6 +60,7 @@ const App = () => (
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
+    </DateProvider>
   </AuthProvider>
 );
 
