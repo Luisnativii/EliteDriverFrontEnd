@@ -3,10 +3,47 @@ import { useState, useEffect } from 'react';
 
 // Datos dummy - luego reemplazar con llamadas a API
 const dummyVehicles = [
-    { id: 1, name: 'Honda Civic', type: 'Sedán', price: 34.00, image: 'https://resizer.glanacion.com/resizer/v2/el-toyota-corolla-renovado-en-2023-por-la-marca-7H7VB2REHZERRL4YJDG5ECG5GE.jpg?auth=33c3e83626046ba0c595eba9505419d30d47c5e62ed93073e5afdcdb87b1801c&width=1280&height=854&quality=70&smart=true' },
-    { id: 2, name: 'Toyota Corolla', type: 'Sedán', price: 35.00, image: 'https://cdn.motor1.com/images/mgl/P3gQyK/s1/corolla-grs-1.webp' },
-    { id: 3, name: 'BMW X5', type: 'SUV', price: 42.00, image: 'https://stimg.cardekho.com/images/carexteriorimages/930x620/BMW/X5-2023/10452/1688992642182/front-left-side-47.jpg'},
-    { id: 4, name: 'Ford ranger', type: 'PickUP', price: 32.00, image: 'https://cdn.motor1.com/images/mgl/zxq9Z8/s1/2025-ford-ranger-phev-europe.jpg' }
+    { 
+        id: 1, 
+        name: 'Honda Civic', 
+        Brand: 'Honda' ,
+        model : '2023', 
+        capacity: 5 ,   
+        type: 'Sedán', 
+        price: 34.00, 
+        image: 'https://resizer.glanacion.com/resizer/v2/el-toyota-corolla-renovado-en-2023-por-la-marca-7H7VB2REHZERRL4YJDG5ECG5GE.jpg?auth=33c3e83626046ba0c595eba9505419d30d47c5e62ed93073e5afdcdb87b1801c&width=1280&height=854&quality=70&smart=true', 
+        features: ['Aire Acondicionado', 'Bluetooth', 'Cámara Trasera', 'Control de Crucero'] },
+    { 
+        id: 2, 
+        name: 'Toyota Corolla',
+        Brand: 'Toyoya' ,
+        model : '2022', 
+        capacity: 5, 
+        type: 'Sedán', 
+        price: 35.00, 
+        image: 'https://cdn.motor1.com/images/mgl/P3gQyK/s1/corolla-grs-1.webp',
+        features: ['Aire Acondicionado', 'Sistema de Navegación', 'Android Auto', 'Apple CarPlay', 'Sensores de Estacionamiento'] },
+    { 
+        id: 3, 
+        name: 'BMW X5',
+        Brand: 'BMW' ,
+        model : '2023', 
+        capacity: 7 , 
+        type: 'SUV', 
+        price: 42.00, 
+        image: 'https://stimg.cardekho.com/images/carexteriorimages/930x620/BMW/X5-2023/10452/1688992642182/front-left-side-47.jpg',  
+        features: ['Tracción 4x4', 'Asientos de Cuero', 'Techo Panorámico', 'Sistema de Sonido Premium', 'Arranque sin Llave']},
+    { 
+        id: 4, 
+        name: 'Ford ranger',
+        Brand: 'Ford' ,
+        model : '2020', 
+        capacity: 5, 
+        type: 'PickUP', 
+        price: 32.00, 
+        image: 'https://cdn.motor1.com/images/mgl/zxq9Z8/s1/2025-ford-ranger-phev-europe.jpg',
+        features: ['Tracción 4x4', 'Caja de Carga', 'Ganchos de Remolque', 'Aire Acondicionado', 'Bluetooth']
+}
 ];
 
 // Simula delay de API para hacer más realista

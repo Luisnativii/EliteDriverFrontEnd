@@ -69,7 +69,7 @@ const MainHomeSection = () => {
                         {/* Botón de búsqueda */}
                         <button className="
                             w-full bg-gradient-to-r from-black to-neutral-500 
-                            hover:from-black hover:to-red-200
+                            hover:from-black hover:to-white
                             text-white font-semibold py-3 px-6 rounded-lg
                             transition-all duration-200 transform hover:scale-105
                             shadow-lg hover:shadow-xl
