@@ -1,5 +1,8 @@
-// src/hooks/useVehicles.js
 import { useState, useEffect } from 'react';
+// Si más adelante querés filtrar por fechas, podés importar tu contexto:
+// import { useDateContext } from '../context/DateContext';
+
+// Datos dummy (serán reemplazados por los del backend)
 
 // Datos dummy - luego reemplazar con llamadas a API
 const dummyVehicles = [
@@ -59,12 +62,15 @@ export const useVehicles = () => {
         try {
             setLoading(true);
             setError(null);
-            
+
+              // 🔽 Cuando esté listo el backend, reemplazá esto:
+            // const response = await fetch('/api/vehicles');
+            // const data = await response.json();
+            // setVehicles(data);
+
+            // 🔼 Por ahora, se usan datos dummy:
             // Simula llamada a API
             await simulateApiDelay();
-            
-            // Aquí luego será: const response = await fetch('/api/vehicles');
-            // const data = await response.json();
             setVehicles(dummyVehicles);
             
         } catch (err) {
@@ -102,18 +108,19 @@ export const useVehicle = (id) => {
             try {
                 setLoading(true);
                 setError(null);
-                
+
+                 // 🔽 En producción:
+                // const response = await fetch(`/api/vehicles/${id}`);
+                // const data = await response.json();
+                // setVehicle(data);
+
+                // 🔼 Por ahora:
                 // Simula llamada a API
                 await simulateApiDelay();
-                
-                // Aquí luego será: const response = await fetch(`/api/vehicles/${id}`);
-                // const data = await response.json();
                 const foundVehicle = dummyVehicles.find(v => v.id === parseInt(id));
-                
                 if (!foundVehicle) {
                     throw new Error('Vehículo no encontrado');
                 }
-                
                 setVehicle(foundVehicle);
                 
             } catch (err) {
@@ -144,12 +151,14 @@ export const useVehiclesByType = (type = 'all') => {
             try {
                 setLoading(true);
                 setError(null);
+
+                 // 🔽 En producción:
+                // const response = await fetch(`/api/vehicles?type=${type}`);
+                // const data = await response.json();
+                // setVehicles(data);
                 
                 // Simula llamada a API
                 await simulateApiDelay(500);
-                
-                // Aquí luego será: const response = await fetch(`/api/vehicles?type=${type}`);
-                // const data = await response.json();
                 const filteredVehicles = type === 'all' 
                     ? dummyVehicles 
                     : dummyVehicles.filter(v => v.type === type);
