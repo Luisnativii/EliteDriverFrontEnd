@@ -1,50 +1,67 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React from 'react';
+import {useParams} from 'react-router-dom';
 import { useVehicle } from '../../hooks/useVehicles';
+import { useReservation }  from '../../hooks/useReservations'
+import VehicleFactDetail from '../../components/customer/VehicleFactDetail';
+import FacturationDetail from '../../components/customer/FacturationDetail';
+
 
 const ReservationPage = () => {
     const { vehicleId } = useParams();
-    const {vehicle: selectedVehicle, loading, error} = useVehicle(vehicleId);
-
+    const { vehicle: selectedVehicle, loading, error } = useVehicle(vehicleId);
+    const {createReservation, isLoading: reservationLoading} = useReservation();
+    //funcion del hook
+    const handleReservation = async (reservationData) => {
+        const result = await createReservation(reservationData);
+        
+        if (result.success) {
+            alert('¡Reserva realizada con éxito!');
+            // Opcional: redirigir a página de confirmación
+            // navigate('/reservation-confirmation', { state: { reservation: result.data } });
+        } else {
+            alert(`Error: ${result.error}`);
+        }
+    };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 px-6 py-25 flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-800 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Hoy c come...</p>
+                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Cargando...</p>
                 </div>
             </div>
         );
     }
-    if (error || !selectedVehicle) return <div>Vehículo no encontrado</div>;
 
-    return (
-        <div className="min-h-screen bg-gray-50 py-20 px-5">
-            <h1 className="text-3xl font-bold mb-6">Reservar Vehículo, lo deje feito hay que ponerlo divo</h1>
-            
-            {/* Mostrar información del vehículo seleccionado */}
-            <div className="bg-white rounded-xl p-6 mb-6">
-                <div className="flex gap-6">
-                    <img 
-                        src={selectedVehicle.image} 
-                        alt={selectedVehicle.name}
-                        className="w-48 h-32 object-cover rounded-lg"
-                    />
-                    <div>
-                        <h2 className="text-2xl font-bold">{selectedVehicle.name}</h2>
-                        <p className="text-gray-600">{selectedVehicle.type}</p>
-                        <p className="text-xl font-semibold mt-2">
-                            Renta por día: ${selectedVehicle.price}
-                        </p>
-                    </div>
+    if (error || !selectedVehicle) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-600 text-xl">Vehículo no encontrado</p>
                 </div>
             </div>
+        );
+    }
 
-            {/* Aquí va tu formulario de reserva */}
-            <div className="bg-white rounded-xl p-6">
-                <h3 className="text-xl font-bold mb-4">Detalles de la Reserva</h3>
-                 {/*  formulario de reserva NATIVI DIO MIO DONDE ESTASDOIASDOASFJASIO */}
+    return (
+        <div className="min-h-screen py-20 px-5 bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900">Reservar Vehículo</h1>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Detalles del Vehículo - Lado Izquierdo */}
+                    <VehicleFactDetail vehicle={selectedVehicle} />
+                    {/* Formulario de Reserva - Lado Derecho */}
+                    <FacturationDetail 
+                        vehicle={selectedVehicle} 
+                        onReservation={handleReservation}
+                        isLoading={reservationLoading}
+                    />
+                    
+                </div>
             </div>
         </div>
     );
