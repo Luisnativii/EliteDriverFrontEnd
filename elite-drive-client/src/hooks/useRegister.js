@@ -1,7 +1,8 @@
-// hooks/useRegisterForm.js
+// hooks/useRegister.js
 import { useState } from 'react';
+import { register } from '../services/authService';
 
-export const useRegisterForm = () => {
+export const useRegister = () => {
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -19,15 +20,15 @@ export const useRegisterForm = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         
-        // Formateo especial para DUI (solo números)
+        // Formateo especial para DUI (solo números, máximo 9)
         if (name === 'dui') {
-            const numericValue = value.replace(/\D/g, '').slice(0, 8);
+            const numericValue = value.replace(/\D/g, '').slice(0, 9);
             setFormData(prev => ({
                 ...prev,
                 [name]: numericValue
             }));
         }
-        // Formateo especial para número de teléfono (solo números)
+        // Formateo especial para número de teléfono (solo números, máximo 8)
         else if (name === 'phoneNumber') {
             const numericValue = value.replace(/\D/g, '').slice(0, 8);
             setFormData(prev => ({
@@ -74,7 +75,14 @@ export const useRegisterForm = () => {
         } else {
             const today = new Date();
             const birthDate = new Date(formData.birthDate);
-            const age = today.getFullYear() - birthDate.getFullYear();
+            
+            // Calcular edad correctamente considerando mes y día
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
             
             if (age < 18) {
                 newErrors.birthDate = 'Debes ser mayor de 18 años';
@@ -86,8 +94,8 @@ export const useRegisterForm = () => {
         // Validación de DUI
         if (!formData.dui) {
             newErrors.dui = 'El DUI es requerido';
-        } else if (formData.dui.length !== 8) {
-            newErrors.dui = 'El DUI debe tener 8 dígitos';
+        } else if (formData.dui.length !== 9) {
+            newErrors.dui = 'El DUI debe tener 9 dígitos';
         }
 
         // Validación de teléfono
@@ -123,8 +131,29 @@ export const useRegisterForm = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async (e) => {
+    // Función para formatear datos antes de enviar a la API
+    const formatDataForAPI = (data) => {
+        return {
+            firstName: data.firstName.trim(),
+            lastName: data.lastName.trim(),
+            birthDate: data.birthDate,
+            // Formatear DUI correctamente para la API
+            dui: data.dui.length === 9 ? `${data.dui.slice(0, 8)}-${data.dui.slice(8)}` : data.dui,
+            // Formatear teléfono correctamente para la API  
+            phoneNumber: data.phoneNumber.length === 8 ? 
+                `${data.phoneNumber.slice(0, 4)}-${data.phoneNumber.slice(4)}` : 
+                data.phoneNumber,
+            email: data.email.trim().toLowerCase(),
+            password: data.password,
+            confirmPassword: data.confirmPassword
+        };
+    };
+
+    const handleSubmit = async (e, onSuccess) => {
         e.preventDefault();
+        
+        // Limpiar errores previos
+        setErrors({});
         
         if (!validateForm()) {
             return;
@@ -133,11 +162,13 @@ export const useRegisterForm = () => {
         setIsLoading(true);
         
         try {
-            // Aquí irá la lógica de registro
-            console.log('Datos del formulario:', formData);
+            // Formatear datos para la API
+            const formattedData = formatDataForAPI(formData);
+            console.log('Datos formateados para API:', formattedData);
             
-            // Simular llamada a API
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Llamar al servicio de registro
+            const response = await register(formattedData);
+            console.log('Registro exitoso:', response);
             
             // Reset form después del éxito
             setFormData({
@@ -151,11 +182,20 @@ export const useRegisterForm = () => {
                 confirmPassword: ''
             });
             
-            alert('Registro exitoso!');
+            // Ejecutar callback de éxito si se proporciona
+            if (onSuccess && typeof onSuccess === 'function') {
+                onSuccess(response);
+            }
             
         } catch (error) {
             console.error('Error en el registro:', error);
-            setErrors({ submit: 'Error al procesar el registro. Intenta nuevamente.' });
+            
+            // Manejar errores específicos
+            if (error.message) {
+                setErrors({ submit: error.message });
+            } else {
+                setErrors({ submit: 'Error al procesar el registro. Intenta nuevamente.' });
+            }
         } finally {
             setIsLoading(false);
         }
@@ -182,6 +222,8 @@ export const useRegisterForm = () => {
         handleChange,
         handleSubmit,
         resetForm,
-        validateForm
+        validateForm,
+        formatDataForAPI,
+        setErrors
     };
 };

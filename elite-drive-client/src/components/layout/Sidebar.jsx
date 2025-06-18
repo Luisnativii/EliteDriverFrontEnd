@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { createContext, useState, useEffect } from "react";
+import { dbRoleToMenu } from "../../utils/roleMapping";
 import { 
   ChevronLeft, 
   Home, 
@@ -50,16 +51,19 @@ const SidebarContext = createContext();
 const Sidebar = ({ toggleSidebar, isMobile }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const role = user?.routeRole || "customer";
+  const role = user?.routeRole || "customer"; // Este será "admin" o "customer"
+  
+  // Convertir el rol de la base de datos al formato de menú
+  const menuRole = user?.role ? dbRoleToMenu(user.role) : 'USER';
 
   const menuOptions = {
-    admin: [
+    ADMIN: [
       { name: "Dashboard", path: "/admin", icon: "Home" },
       { name: "Gestión de Vehículos", path: "/admin/vehicle", icon: "Car" },
       { name: "Gestión de Reservas", path: "/admin/reservation", icon: "Calendar" },
       { name: "Mantenimiento", path: "/admin/maintenance", icon: "Wrench" },
     ],
-    customer: [
+    USER: [
       { name: "Inicio", path: "/customer", icon: "Home" },
       { name: "Vehículos", path: "/customer/vehicles", icon: "Car" },
       { name: "Hacer Reserva", path: "/customer/reservation-page", icon: "Calendar" },
@@ -104,7 +108,7 @@ const Sidebar = ({ toggleSidebar, isMobile }) => {
         {/* Menú de navegación */}
         <SidebarContext.Provider value={{ open: true }}>
           <ul className="flex-1 px-4 py-6 space-y-2">
-            {menuOptions[role]?.map(({ name, path, icon }) => {
+            {menuOptions[menuRole]?.map(({ name, path, icon }) => {
               const IconComponent = iconMap[icon];
               const isActive = isActivePath(path);
               
@@ -158,13 +162,12 @@ const Sidebar = ({ toggleSidebar, isMobile }) => {
                 <h4 className="font-semibold text-sm text-white truncate">
                   {user?.firstName || user?.name || "Usuario"}
                 </h4>
-                {role === 'admin'}
               </div>
               <span className="text-xs text-slate-400 truncate block">
                 {user?.email || "No disponible"}
               </span>
               <span className={`text-xs font-medium bg-gradient-to-r ${roleConfig[role].accent} bg-clip-text text-neutral-500`}>
-                {user?.role === 'ADMIN' ? 'Administrador' : 'Cliente Premium'}
+                {menuRole === 'ADMIN' ? 'Administrador' : 'Cliente'}
               </span>
             </div>
           </div>
