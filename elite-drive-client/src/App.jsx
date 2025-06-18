@@ -16,52 +16,53 @@ import VehicleDetailPage from './pages/customer/VehicleDetailPage';
 import LoginTemp from './pages/auth/LoginTemp';
 import Login from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
-import VehicleTypeDetailPage from './pages/customer/VehicleTypeDetailPage'; // Descomenta cuando crees el archivo
+import VehicleTypeDetailPage from './pages/customer/VehicleTypeDetailPage';
+import RootRedirect from './components/RootRedirect';
 
 const App = () => (
-  <AuthProvider>
-    <DateProvider>
-    <Router>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/login" element={<LoginTemp />} />
-        <Route path="/register" element={<RegisterPage />} />
-        
-        {/* Root redirect */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        
-        {/* Private routes with Layout */}
-        <Route path="/admin" element={
-          <ProtectedRoute requiredRole="admin">
-            <Layout />
-          </ProtectedRoute>
-        }>
-          <Route index element={<DashboardPage />} />
-          <Route path="maintenance" element={<MaintenancePage />} />
-          <Route path="reservation" element={<ReservationManagementPage />} />
-          <Route path="vehicle" element={<VehicleManagementPage />} />
-        </Route>
-        
-        <Route path="/customer" element={
-          <ProtectedRoute requiredRole="customer">
-            <Layout />
-          </ProtectedRoute>
-        }>
-          <Route index element={<HomePage />} />
-          <Route path="my-reservations" element={<MyReservationPage />} />
-          <Route path="reservation-page/:vehicleId" element={<ReservationPage />} />
-          <Route path="vehicles" element={<VehiclesPage />} />
-          <Route path="vehicles/:id" element={<VehicleDetailPage />} />
-           {/*  ruta para tipos de vehículos */}
-          <Route path="vehicle-type/:vehicleType" element={<VehicleTypeDetailPage />} />
-        </Route>
-        
-        {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </Router>
-    </DateProvider>
-  </AuthProvider>
+  <Router>
+    <AuthProvider>
+      <DateProvider>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<RootRedirect />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<RegisterPage />} />
+          
+          {/* Private routes with Layout */}
+          <Route path="/admin" element={
+            <ProtectedRoute requiredRole="admin">
+              <Layout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<DashboardPage />} />
+            <Route path="maintenance" element={<MaintenancePage />} />
+            <Route path="reservation" element={<ReservationManagementPage />} />
+            <Route path="vehicle" element={<VehicleManagementPage />} />
+          </Route>
+          
+          <Route path="/customer" element={
+            <ProtectedRoute requiredRole="customer">
+              <Layout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<HomePage />} />
+            <Route path="my-reservations" element={<MyReservationPage />} />
+            <Route path="reservation-page/:vehicleId" element={<ReservationPage />} />
+            <Route path="vehicles" element={<VehiclesPage />} />
+            <Route path="vehicles/:id" element={<VehicleDetailPage />} />
+            <Route path="vehicle-type/:vehicleType" element={<VehicleTypeDetailPage />} />
+          </Route>
+          
+          {/* Root redirect - handle this after auth check */}
+          <Route path="/" element={<ProtectedRoute><Navigate to="/customer" replace /></ProtectedRoute>} />
+          
+          {/* Catch all route */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </DateProvider>
+    </AuthProvider>
+  </Router>
 );
 
 export default App;
