@@ -2,8 +2,9 @@ import React, { useEffect } from 'react';
 import { useVehicleForm, useVehicleOperations } from '../../hooks/useVehicles';
 import { Car, Users, DollarSign, MapPin, Save, X, AlertCircle } from 'lucide-react';
 
-const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
-  const isEditing = !!vehicle;
+const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
+  const editMode = isEditing;
+
   const { createVehicle, updateVehicle, isLoading, errors, clearErrors } = useVehicleOperations();
 
   const {
@@ -23,8 +24,10 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
     pricePerDay: vehicle.price?.toString() || '',
     kilometers: vehicle.kilometers?.toString() || '',
     features: vehicle.features || [],
-    image: vehicle.image || null
-  } : {});
+    image: vehicle.image || null,
+    // Agregar featuresText para edición
+    featuresText: vehicle.features ? vehicle.features.join(', ') : ''
+  } : {}, isEditing);
 
   // Opciones para el select de tipo de vehículo
   const vehicleTypes = [
@@ -37,7 +40,14 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
   // Limpiar errores al montar el componente
   useEffect(() => {
     clearErrors();
-  }, [clearErrors]);
+    
+    // Debug: verificar el estado de edición
+    console.log('🔧 VehicleForm - Estado de edición:');
+    console.log('- isEditing prop:', isEditing);
+    console.log('- vehicle presente:', !!vehicle);
+    console.log('- editMode calculado:', editMode);
+    console.log('- vehicle data:', vehicle);
+  }, [clearErrors, isEditing, vehicle, editMode]);
 
   // Manejar características - CORREGIDO
   const handleFeaturesChange = (e) => {
@@ -67,26 +77,35 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
     }
 
     try {
-      // CORRECCIÓN: Procesar las features correctamente
-      const submitData = {
-        name: formData.name.trim(),
-        brand: formData.brand.trim(),
-        model: formData.model.trim(),
-        capacity: parseInt(formData.capacity),
-        vehicleType: formData.vehicleType,
-        pricePerDay: parseFloat(formData.pricePerDay),
-        kilometers: parseInt(formData.kilometers),
-        features: formData.featuresText
-          ? formData.featuresText.split(',').map(f => f.trim()).filter(f => f !== '')
-          : [],
-        image: formData.image
-      };
+      if (editMode) {
+        // Para actualización, solo enviar campos editables
+        const updateData = {
+          pricePerDay: parseFloat(formData.pricePerDay),
+          kilometers: parseInt(formData.kilometers),
+          features: formData.featuresText
+            ? formData.featuresText.split(',').map(f => f.trim()).filter(f => f !== '')
+            : []
+        };
 
-      console.log('🔧 Datos a enviar:', submitData);
-
-      if (isEditing) {
-        await updateVehicle(vehicle.id, submitData, onSuccess);
+        console.log('🔧 Datos de actualización a enviar:', updateData);
+        await updateVehicle(vehicle.id, updateData, onSuccess);
       } else {
+        // Para creación, enviar todos los datos (mantener lógica existente)
+        const submitData = {
+          name: formData.name.trim(),
+          brand: formData.brand.trim(),
+          model: formData.model.trim(),
+          capacity: parseInt(formData.capacity),
+          vehicleType: formData.vehicleType,
+          pricePerDay: parseFloat(formData.pricePerDay),
+          kilometers: parseInt(formData.kilometers),
+          features: formData.featuresText
+            ? formData.featuresText.split(',').map(f => f.trim()).filter(f => f !== '')
+            : [],
+          image: formData.image
+        };
+
+        console.log('🔧 Datos de creación a enviar:', submitData);
         await createVehicle(submitData, onSuccess);
       }
     } catch (error) {
@@ -116,6 +135,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
           <label htmlFor="name" className="block text-sm font-semibold text-white mb-2">
             <Car className="w-4 h-4 inline mr-2" />
             Nombre del Vehículo *
+            {editMode && <span className="text-yellow-400 text-xs ml-2">(Solo lectura)</span>}
           </label>
           <input
             type="text"
@@ -123,11 +143,16 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${allErrors.name ? 'border-red-500/50' : 'border-white/20'
-              }`}
+            disabled={editMode}
+            readOnly={editMode}
+            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${
+              editMode
+                ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
+                : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.name ? 'border-red-500/50' : ''}`
+            }`}
             placeholder="Ej: Toyota Corolla 2023"
           />
-          {allErrors.name && (
+          {!editMode && allErrors.name && (
             <p className="mt-2 text-sm text-red-300">{allErrors.name}</p>
           )}
         </div>
@@ -135,14 +160,19 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
         <div>
           <label htmlFor="vehicleType" className="block text-sm font-semibold text-white mb-2">
             Tipo de Vehículo *
+            {editMode && <span className="text-yellow-400 text-xs ml-2">(Solo lectura)</span>}
           </label>
           <select
             id="vehicleType"
             name="vehicleType"
             value={formData.vehicleType}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent appearance-none transition-all duration-300 hover:bg-white/15 ${allErrors.vehicleType ? 'border-red-500/50' : 'border-white/20'
-              }`}
+            disabled={editMode}
+            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm focus:outline-none appearance-none transition-all duration-300 ${
+              editMode
+                ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
+                : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.vehicleType ? 'border-red-500/50' : ''}`
+            }`}
           >
             {vehicleTypes.map(type => (
               <option key={type.value} value={type.value} className="bg-gray-900 text-white">
@@ -150,7 +180,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
               </option>
             ))}
           </select>
-          {allErrors.vehicleType && (
+          {!editMode && allErrors.vehicleType && (
             <p className="mt-2 text-sm text-red-300">{allErrors.vehicleType}</p>
           )}
         </div>
@@ -161,6 +191,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
         <div>
           <label htmlFor="brand" className="block text-sm font-semibold text-white mb-2">
             Marca *
+            {editMode && <span className="text-yellow-400 text-xs ml-2">(Solo lectura)</span>}
           </label>
           <input
             type="text"
@@ -168,11 +199,16 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="brand"
             value={formData.brand}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${allErrors.brand ? 'border-red-500/50' : 'border-white/20'
-              }`}
+            disabled={editMode}
+            readOnly={editMode}
+            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${
+              editMode
+                ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
+                : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.brand ? 'border-red-500/50' : ''}`
+            }`}
             placeholder="Ej: Toyota"
           />
-          {allErrors.brand && (
+          {!editMode && allErrors.brand && (
             <p className="mt-2 text-sm text-red-300">{allErrors.brand}</p>
           )}
         </div>
@@ -180,6 +216,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
         <div>
           <label htmlFor="model" className="block text-sm font-semibold text-white mb-2">
             Modelo *
+            {editMode && <span className="text-yellow-400 text-xs ml-2">(Solo lectura)</span>}
           </label>
           <input
             type="text"
@@ -187,11 +224,16 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="model"
             value={formData.model}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${allErrors.model ? 'border-red-500/50' : 'border-white/20'
-              }`}
+            disabled={editMode}
+            readOnly={editMode}
+            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${
+              editMode
+                ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
+                : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.model ? 'border-red-500/50' : ''}`
+            }`}
             placeholder="Ej: Corolla"
           />
-          {allErrors.model && (
+          {!editMode && allErrors.model && (
             <p className="mt-2 text-sm text-red-300">{allErrors.model}</p>
           )}
         </div>
@@ -203,6 +245,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
           <label htmlFor="capacity" className="block text-sm font-semibold text-white mb-2">
             <Users className="w-4 h-4 inline mr-2" />
             Capacidad (personas) *
+            {editMode && <span className="text-yellow-400 text-xs ml-2">(Solo lectura)</span>}
           </label>
           <input
             type="text"
@@ -210,11 +253,16 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="capacity"
             value={formData.capacity}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${allErrors.capacity ? 'border-red-500/50' : 'border-white/20'
-              }`}
+            disabled={editMode}
+            readOnly={editMode}
+            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${
+              editMode
+                ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
+                : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.capacity ? 'border-red-500/50' : ''}`
+            }`}
             placeholder="Ej: 5"
           />
-          {allErrors.capacity && (
+          {!editMode && allErrors.capacity && (
             <p className="mt-2 text-sm text-red-300">{allErrors.capacity}</p>
           )}
         </div>
@@ -223,6 +271,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
           <label htmlFor="kilometers" className="block text-sm font-semibold text-white mb-2">
             <MapPin className="w-4 h-4 inline mr-2" />
             Kilómetros *
+            {editMode && <span className="text-green-400 text-xs ml-2">(Editable)</span>}
           </label>
           <input
             type="text"
@@ -230,8 +279,9 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="kilometers"
             value={formData.kilometers}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${allErrors.kilometers ? 'border-red-500/50' : 'border-white/20'
-              }`}
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
+              editMode ? 'ring-2 ring-green-500/50 border-green-500/50' : ''
+            } ${allErrors.kilometers ? 'border-red-500/50' : 'border-white/20'}`}
             placeholder="Ej: 50000"
           />
           {allErrors.kilometers && (
@@ -245,6 +295,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
         <label htmlFor="pricePerDay" className="block text-sm font-semibold text-white mb-2">
           <DollarSign className="w-4 h-4 inline mr-2" />
           Precio por Día (USD) *
+          {editMode && <span className="text-green-400 text-xs ml-2">(Editable)</span>}
         </label>
         <input
           type="text"
@@ -252,8 +303,9 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
           name="pricePerDay"
           value={formData.pricePerDay}
           onChange={handleChange}
-          className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${allErrors.pricePerDay ? 'border-red-500/50' : 'border-white/20'
-            }`}
+          className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
+            editMode ? 'ring-2 ring-green-500/50 border-green-500/50' : ''
+          } ${allErrors.pricePerDay ? 'border-red-500/50' : 'border-white/20'}`}
           placeholder="Ej: 45.00"
         />
         {allErrors.pricePerDay && (
@@ -265,6 +317,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
       <div>
         <label htmlFor="features" className="block text-sm font-semibold text-white mb-2">
           Características (separadas por comas)
+          {editMode && <span className="text-green-400 text-xs ml-2">(Editable)</span>}
         </label>
         <textarea
           id="features"
@@ -272,14 +325,16 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
           value={formData.featuresText || (Array.isArray(formData.features) ? formData.features.join(', ') : '')}
           onChange={handleFeaturesChange}
           rows={3}
-          className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15"
+          className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
+            editMode ? 'ring-2 ring-green-500/50 border-green-500/50' : ''
+          }`}
           placeholder="Ej: Aire acondicionado, GPS, Bluetooth, Cámara reversa"
         />
         <p className="mt-2 text-xs text-white/60">
           Separa cada característica con una coma
         </p>
         {/* Preview de características */}
-        {formData.features.length > 0 && (
+        {formData.features && formData.features.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
             {formData.features.map((feature, index) => (
               <span
@@ -297,6 +352,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
       <div>
         <label htmlFor="image" className="block text-sm font-semibold text-white mb-2">
           URL de Imagen
+          {editMode && <span className="text-yellow-400 text-xs ml-2">(Solo lectura)</span>}
         </label>
         <input
           type="url"
@@ -304,7 +360,13 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
           name="image"
           value={formData.image || ''}
           onChange={handleChange}
-          className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15"
+          disabled={editMode}
+          readOnly={editMode}
+          className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${
+            editMode
+              ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
+              : 'bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent'
+          }`}
           placeholder="https://ejemplo.com/imagen-vehiculo.jpg"
         />
       </div>
@@ -333,12 +395,12 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
               </div>
-              {isEditing ? 'Actualizando...' : 'Creando...'}
+              {editMode ? 'Actualizando...' : 'Creando...'}
             </>
           ) : (
             <>
               <Save className="w-4 h-4 mr-2" />
-              {isEditing ? 'Actualizar Vehículo' : 'Crear Vehículo'}
+              {editMode ? 'Actualizar Vehículo' : 'Crear Vehículo'}
             </>
           )}
         </button>

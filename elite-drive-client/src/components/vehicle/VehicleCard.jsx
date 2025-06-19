@@ -18,10 +18,11 @@ const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEdit = () => {
-    if (onEdit) {
-      onEdit(vehicle);
-    }
-  };
+  if (onEdit) {
+    // Pasar el vehículo y indicar explícitamente que está en modo edición
+    onEdit(vehicle, true); // Segundo parámetro indica isEditing = true
+  }
+};
 
   const handleDeleteClick = () => {
     setShowDeleteConfirm(true);

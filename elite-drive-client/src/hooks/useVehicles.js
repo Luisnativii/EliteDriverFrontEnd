@@ -238,30 +238,31 @@ export const useVehicleOperations = () => {
 };
 
 // Hook CORREGIDO para manejo de formularios de vehículos
-export const useVehicleForm = (initialData = {}) => {
+export const useVehicleForm = (initialData = {}, isEditMode = false) => {
   const [formData, setFormData] = useState({
-  name: '',
-  brand: '',
-  model: '',
-  capacity: '',
-  vehicleType: '', 
-  pricePerDay: '',
-  kilometers: '',
-  features: [],
-  image: null,
-  ...initialData,
-  // CORRECCIÓN: Manejar featuresText correctamente
-  featuresText: (() => {
-    if (initialData.features) {
-      if (Array.isArray(initialData.features)) {
-        return initialData.features.join(', ');
-      } else if (typeof initialData.features === 'string') {
-        return initialData.features;
+    // Campos que siempre se muestran
+    name: '',
+    brand: '',
+    model: '',
+    capacity: '',
+    vehicleType: '', 
+    pricePerDay: '',
+    kilometers: '',
+    features: [],
+    image: null,
+    ...initialData,
+    // CORRECCIÓN: Manejar featuresText correctamente
+    featuresText: (() => {
+      if (initialData.features) {
+        if (Array.isArray(initialData.features)) {
+          return initialData.features.join(', ');
+        } else if (typeof initialData.features === 'string') {
+          return initialData.features;
+        }
       }
-    }
-    return '';
-  })()
-});
+      return '';
+    })()
+  });
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -306,44 +307,59 @@ export const useVehicleForm = (initialData = {}) => {
   const validateForm = useCallback(() => {
     const newErrors = {};
 
-    // Validaciones básicas
-    if (!formData.name.trim()) {
-      newErrors.name = 'El nombre del vehículo es requerido';
-    }
+    // En modo edición, solo validar campos editables
+    if (isEditMode) {
+      if (!formData.pricePerDay) {
+        newErrors.pricePerDay = 'El precio por día es requerido';
+      } else if (parseFloat(formData.pricePerDay) <= 0) {
+        newErrors.pricePerDay = 'El precio debe ser mayor a 0';
+      }
 
-    if (!formData.brand.trim()) {
-      newErrors.brand = 'La marca es requerida';
-    }
+      if (!formData.kilometers) {
+        newErrors.kilometers = 'Los kilómetros son requeridos';
+      } else if (parseInt(formData.kilometers) < 0) {
+        newErrors.kilometers = 'Los kilómetros no pueden ser negativos';
+      }
+    } else {
+      // Validaciones completas para creación (mantener las existentes)
+      if (!formData.name.trim()) {
+        newErrors.name = 'El nombre del vehículo es requerido';
+      }
 
-    if (!formData.model.trim()) {
-      newErrors.model = 'El modelo es requerido';
-    }
+      if (!formData.brand.trim()) {
+        newErrors.brand = 'La marca es requerida';
+      }
 
-    if (!formData.capacity) {
-      newErrors.capacity = 'La capacidad es requerida';
-    } else if (parseInt(formData.capacity) < 1 || parseInt(formData.capacity) > 50) {
-      newErrors.capacity = 'La capacidad debe estar entre 1 y 50 personas';
-    }
+      if (!formData.model.trim()) {
+        newErrors.model = 'El modelo es requerido';
+      }
 
-    if (!formData.vehicleType) {
-      newErrors.vehicleType = 'El tipo de vehículo es requerido';
-    }
+      if (!formData.capacity) {
+        newErrors.capacity = 'La capacidad es requerida';
+      } else if (parseInt(formData.capacity) < 1 || parseInt(formData.capacity) > 50) {
+        newErrors.capacity = 'La capacidad debe estar entre 1 y 50 personas';
+      }
 
-    if (!formData.pricePerDay) {
-      newErrors.pricePerDay = 'El precio por día es requerido';
-    } else if (parseFloat(formData.pricePerDay) <= 0) {
-      newErrors.pricePerDay = 'El precio debe ser mayor a 0';
-    }
+      if (!formData.vehicleType) {
+        newErrors.vehicleType = 'El tipo de vehículo es requerido';
+      }
 
-    if (!formData.kilometers) {
-      newErrors.kilometers = 'Los kilómetros son requeridos';
-    } else if (parseInt(formData.kilometers) < 0) {
-      newErrors.kilometers = 'Los kilómetros no pueden ser negativos';
+      if (!formData.pricePerDay) {
+        newErrors.pricePerDay = 'El precio por día es requerido';
+      } else if (parseFloat(formData.pricePerDay) <= 0) {
+        newErrors.pricePerDay = 'El precio debe ser mayor a 0';
+      }
+
+      if (!formData.kilometers) {
+        newErrors.kilometers = 'Los kilómetros son requeridos';
+      } else if (parseInt(formData.kilometers) < 0) {
+        newErrors.kilometers = 'Los kilómetros no pueden ser negativos';
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  }, [formData, isEditMode]);
 
   const resetForm = useCallback(() => {
     setFormData({

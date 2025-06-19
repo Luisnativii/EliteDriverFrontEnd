@@ -13,16 +13,17 @@ const VehicleManagementPage = () => {
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
+  
 
   // Filtrar vehículos basado en búsqueda y filtro
   const filteredVehicles = vehicles.filter(vehicle => {
     const matchesSearch = vehicle.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vehicle.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vehicle.model.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter = filterType === 'all' || 
-                         vehicle.type?.toLowerCase() === filterType.toLowerCase();
-    
+      vehicle.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.model.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesFilter = filterType === 'all' ||
+      vehicle.type?.toLowerCase() === filterType.toLowerCase();
+
     return matchesSearch && matchesFilter;
   });
 
@@ -38,14 +39,15 @@ const VehicleManagementPage = () => {
     setShowForm(true);
   };
 
-  const handleEditVehicle = (vehicle) => {
-    if (!hasAdminRole) {
-      alert('Solo los administradores pueden editar vehículos');
-      return;
-    }
-    setEditingVehicle(vehicle);
-    setShowForm(true);
-  };
+  const handleEditVehicle = (vehicle, isEditing = true) => {
+  if (!hasAdminRole) {
+    alert('Solo los administradores pueden editar vehículos');
+    return;
+  }
+  console.log('🔧 Editando vehículo:', vehicle.name, 'isEditing:', isEditing);
+  setEditingVehicle(vehicle);
+  setShowForm(true);
+};
 
   const handleCloseForm = () => {
     setShowForm(false);
@@ -72,6 +74,8 @@ const VehicleManagementPage = () => {
       </div>
     );
   }
+
+  const isEditingMode = !!editingVehicle;
 
   // Verificar si el usuario está autenticado
   if (!isAuthenticated) {
@@ -165,8 +169,8 @@ const VehicleManagementPage = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-white/70">En mantenimiento</p>
                 <p className="text-xl font-bold text-white">
-                  ${vehicles.length > 0 ? 
-                    (vehicles.reduce((sum, v) => sum + v.price, 0) / vehicles.length).toFixed(0) : 
+                  ${vehicles.length > 0 ?
+                    (vehicles.reduce((sum, v) => sum + v.price, 0) / vehicles.length).toFixed(0) :
                     '0'
                   }
                 </p>
@@ -182,14 +186,14 @@ const VehicleManagementPage = () => {
               <Search className="w-10 h-10 text-white/60" />
             </div>
             <h3 className="text-xl font-bold text-white mb-3">
-              {searchTerm || filterType !== 'all' ? 
-                'No se encontraron vehículos' : 
+              {searchTerm || filterType !== 'all' ?
+                'No se encontraron vehículos' :
                 'No hay vehículos registrados'
               }
             </h3>
             <p className="text-white/70 text-sm mb-8 text-lg">
-              {searchTerm || filterType !== 'all' ? 
-                'Intenta ajustar tus filtros de búsqueda' : 
+              {searchTerm || filterType !== 'all' ?
+                'Intenta ajustar tus filtros de búsqueda' :
                 'Comienza agregando tu primer vehículo a la flota premium'
               }
             </p>
@@ -224,7 +228,7 @@ const VehicleManagementPage = () => {
               <div className="sticky top-0 bg-white/10 backdrop-blur-md border-b border-white/20 px-8 py-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-white">
-                    {editingVehicle ? 'Editar Vehículo' : 'Agregar Nuevo Vehículo'}
+                    {isEditingMode ? 'Editar Vehículo' : 'Agregar Nuevo Vehículo'}
                   </h2>
                   <button
                     onClick={handleCloseForm}
@@ -242,6 +246,7 @@ const VehicleManagementPage = () => {
                   vehicle={editingVehicle}
                   onSuccess={handleFormSuccess}
                   onCancel={handleCloseForm}
+                  isEditing={isEditingMode}  // ← Prop explícito agregado
                 />
               </div>
             </div>

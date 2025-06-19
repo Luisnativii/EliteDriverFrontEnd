@@ -133,6 +133,39 @@ const transformVehicleForAPI = (vehicleData) => {
   return apiData;
 };
 
+const transformVehicleForUpdate = (vehicleData) => {
+  console.log('🔄 Transformando vehículo para actualización (solo campos permitidos):', vehicleData);
+  
+  // Procesar features de manera más robusta
+  let processedFeatures = [];
+  if (vehicleData.features) {
+    if (Array.isArray(vehicleData.features)) {
+      processedFeatures = vehicleData.features.filter(f => f && typeof f === 'string' && f.trim() !== '');
+    } else if (typeof vehicleData.features === 'string') {
+      processedFeatures = vehicleData.features.split(',').map(f => f.trim()).filter(f => f !== '');
+    }
+  }
+  
+  // Solo validar y enviar los campos que se pueden actualizar
+  const pricePerDay = parseFloat(vehicleData.pricePerDay || vehicleData.price);
+  const kilometers = parseInt(vehicleData.kilometers);
+  
+  // Validar que los campos requeridos estén presentes
+  if (isNaN(pricePerDay) || isNaN(kilometers)) {
+    console.error('❌ Datos incompletos para actualización:', { pricePerDay, kilometers });
+    throw new Error('Precio por día y kilómetros son requeridos para la actualización');
+  }
+  
+  const updateData = {
+    pricePerDay,
+    kilometers,
+    features: processedFeatures
+  };
+  
+  console.log('📤 Datos transformados para actualización:', updateData);
+  return updateData;
+};
+
 // Servicios principales
 export const getAllVehicles = async () => {
   try {
@@ -292,7 +325,9 @@ export const updateVehicle = async (id, updateData) => {
     console.log('✏️ Actualizando vehículo:', id, updateData);
     
     const endpoint = API_ENDPOINTS.VEHICLES.UPDATE.replace(':id', id);
-    const apiData = transformVehicleForAPI(updateData);
+    
+    // Usar la función específica para updates que solo envía campos permitidos
+    const apiData = transformVehicleForUpdate(updateData);
     
     const response = await vehicleApi.put(endpoint, apiData);
     console.log('✅ Vehículo actualizado exitosamente');
@@ -309,7 +344,7 @@ export const updateVehicle = async (id, updateData) => {
       
       switch (status) {
         case 400:
-          errorMessage = data?.message || 'Datos inválidos.';
+          errorMessage = data?.message || 'Datos inválidos. Solo se pueden actualizar precio, kilómetros y características.';
           break;
         case 401:
           errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
