@@ -73,10 +73,10 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Errores generales */}
       {(errors.create || errors.update) && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-500/20 backdrop-blur-md border border-red-500/30 rounded-lg p-4">
           <div className="flex items-center">
             <AlertCircle className="w-5 h-5 text-red-400 mr-2" />
-            <span className="text-red-700">
+            <span className="text-red-200 font-medium">
               {errors.create || errors.update}
             </span>
           </div>
@@ -86,8 +86,8 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
       {/* Información básica */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-            <Car className="w-4 h-4 inline mr-1" />
+          <label htmlFor="name" className="block text-sm font-semibold text-white mb-2">
+            <Car className="w-4 h-4 inline mr-2" />
             Nombre del Vehículo *
           </label>
           <input
@@ -96,18 +96,18 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              allErrors.name ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
+              allErrors.name ? 'border-red-500/50' : 'border-white/20'
             }`}
             placeholder="Ej: Toyota Corolla 2023"
           />
           {allErrors.name && (
-            <p className="mt-1 text-sm text-red-600">{allErrors.name}</p>
+            <p className="mt-2 text-sm text-red-300">{allErrors.name}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="carType" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="carType" className="block text-sm font-semibold text-white mb-2">
             Tipo de Vehículo *
           </label>
           <select
@@ -115,18 +115,18 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="carType"
             value={formData.carType}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              allErrors.carType ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent appearance-none transition-all duration-300 hover:bg-white/15 ${
+              allErrors.carType ? 'border-red-500/50' : 'border-white/20'
             }`}
           >
             {vehicleTypes.map(type => (
-              <option key={type.value} value={type.value}>
+              <option key={type.value} value={type.value} className="bg-gray-900 text-white">
                 {type.label}
               </option>
             ))}
           </select>
           {allErrors.carType && (
-            <p className="mt-1 text-sm text-red-600">{allErrors.carType}</p>
+            <p className="mt-2 text-sm text-red-300">{allErrors.carType}</p>
           )}
         </div>
       </div>
@@ -134,7 +134,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
       {/* Marca y Modelo */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="brand" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="brand" className="block text-sm font-semibold text-white mb-2">
             Marca *
           </label>
           <input
@@ -143,18 +143,18 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="brand"
             value={formData.brand}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              allErrors.brand ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
+              allErrors.brand ? 'border-red-500/50' : 'border-white/20'
             }`}
             placeholder="Ej: Toyota"
           />
           {allErrors.brand && (
-            <p className="mt-1 text-sm text-red-600">{allErrors.brand}</p>
+            <p className="mt-2 text-sm text-red-300">{allErrors.brand}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="model" className="block text-sm font-semibold text-white mb-2">
             Modelo *
           </label>
           <input
@@ -163,13 +163,13 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="model"
             value={formData.model}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              allErrors.model ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
+              allErrors.model ? 'border-red-500/50' : 'border-white/20'
             }`}
             placeholder="Ej: Corolla"
           />
           {allErrors.model && (
-            <p className="mt-1 text-sm text-red-600">{allErrors.model}</p>
+            <p className="mt-2 text-sm text-red-300">{allErrors.model}</p>
           )}
         </div>
       </div>
@@ -177,8 +177,8 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
       {/* Capacidad y Kilómetros */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="capacity" className="block text-sm font-medium text-gray-700 mb-2">
-            <Users className="w-4 h-4 inline mr-1" />
+          <label htmlFor="capacity" className="block text-sm font-semibold text-white mb-2">
+            <Users className="w-4 h-4 inline mr-2" />
             Capacidad (personas) *
           </label>
           <input
@@ -187,19 +187,19 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="capacity"
             value={formData.capacity}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              allErrors.capacity ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
+              allErrors.capacity ? 'border-red-500/50' : 'border-white/20'
             }`}
             placeholder="Ej: 5"
           />
           {allErrors.capacity && (
-            <p className="mt-1 text-sm text-red-600">{allErrors.capacity}</p>
+            <p className="mt-2 text-sm text-red-300">{allErrors.capacity}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="kilometers" className="block text-sm font-medium text-gray-700 mb-2">
-            <MapPin className="w-4 h-4 inline mr-1" />
+          <label htmlFor="kilometers" className="block text-sm font-semibold text-white mb-2">
+            <MapPin className="w-4 h-4 inline mr-2" />
             Kilómetros *
           </label>
           <input
@@ -208,21 +208,21 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="kilometers"
             value={formData.kilometers}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              allErrors.kilometers ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
+              allErrors.kilometers ? 'border-red-500/50' : 'border-white/20'
             }`}
             placeholder="Ej: 50000"
           />
           {allErrors.kilometers && (
-            <p className="mt-1 text-sm text-red-600">{allErrors.kilometers}</p>
+            <p className="mt-2 text-sm text-red-300">{allErrors.kilometers}</p>
           )}
         </div>
       </div>
 
       {/* Precio */}
       <div>
-        <label htmlFor="pricePerDay" className="block text-sm font-medium text-gray-700 mb-2">
-          <DollarSign className="w-4 h-4 inline mr-1" />
+        <label htmlFor="pricePerDay" className="block text-sm font-semibold text-white mb-2">
+          <DollarSign className="w-4 h-4 inline mr-2" />
           Precio por Día (USD) *
         </label>
         <input
@@ -231,19 +231,19 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
           name="pricePerDay"
           value={formData.pricePerDay}
           onChange={handleChange}
-          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            allErrors.pricePerDay ? 'border-red-500' : 'border-gray-300'
+          className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
+            allErrors.pricePerDay ? 'border-red-500/50' : 'border-white/20'
           }`}
           placeholder="Ej: 45.00"
         />
         {allErrors.pricePerDay && (
-          <p className="mt-1 text-sm text-red-600">{allErrors.pricePerDay}</p>
+          <p className="mt-2 text-sm text-red-300">{allErrors.pricePerDay}</p>
         )}
       </div>
 
       {/* Características */}
       <div>
-        <label htmlFor="features" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="features" className="block text-sm font-semibold text-white mb-2">
           Características (separadas por comas)
         </label>
         <textarea
@@ -252,17 +252,17 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
           value={formData.features.join(', ')}
           onChange={handleFeaturesChange}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15"
           placeholder="Ej: Aire acondicionado, GPS, Bluetooth, Cámara reversa"
         />
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-2 text-xs text-white/60">
           Separa cada característica con una coma
         </p>
       </div>
 
       {/* URL de imagen */}
       <div>
-        <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="image" className="block text-sm font-semibold text-white mb-2">
           URL de Imagen
         </label>
         <input
@@ -271,18 +271,18 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
           name="image"
           value={formData.image || ''}
           onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15"
           placeholder="https://ejemplo.com/imagen-vehiculo.jpg"
         />
       </div>
 
       {/* Botones de acción */}
-      <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+      <div className="flex justify-end space-x-4 pt-6 border-t border-white/20">
         <button
           type="button"
           onClick={onCancel}
           disabled={isLoading}
-          className="px-6 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200 disabled:opacity-50 flex items-center"
+          className="px-6 py-3 text-white bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg hover:bg-white/20 transition-all duration-300 disabled:opacity-50 flex items-center font-medium"
         >
           <X className="w-4 h-4 mr-2" />
           Cancelar
@@ -290,7 +290,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
         <button
           type="submit"
           disabled={isLoading}
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 flex items-center"
+          className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 flex items-center"
         >
           {isLoading ? (
             <>

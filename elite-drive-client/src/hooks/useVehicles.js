@@ -1,5 +1,5 @@
 // hooks/useVehicles.js
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   getAllVehicles,
   getVehicleById,
@@ -18,7 +18,7 @@ export const useVehicles = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchVehicles = async () => {
+  const fetchVehicles = useCallback(async () => {
     try {
       console.log('🚗 Iniciando carga de vehículos...');
       setLoading(true);
@@ -33,11 +33,11 @@ export const useVehicles = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchVehicles();
-  }, []);
+  }, [fetchVehicles]);
 
   return { 
     vehicles, 
@@ -53,7 +53,7 @@ export const useVehicle = (id) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchVehicle = async () => {
+  const fetchVehicle = useCallback(async () => {
     if (!id) {
       setLoading(false);
       return;
@@ -73,11 +73,11 @@ export const useVehicle = (id) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchVehicle();
-  }, [id]);
+  }, [fetchVehicle]);
 
   return { 
     vehicle, 
@@ -129,7 +129,7 @@ export const useVehicleOperations = () => {
   const { hasAdminRole: userHasAdminRole } = useAuthCheck();
 
   // Función para crear vehículo
-  const handleCreateVehicle = async (vehicleData, onSuccess) => {
+  const handleCreateVehicle = useCallback(async (vehicleData, onSuccess) => {
     try {
       setIsLoading(true);
       setErrors({});
@@ -155,10 +155,10 @@ export const useVehicleOperations = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userHasAdminRole]);
 
   // Función para actualizar vehículo
-  const handleUpdateVehicle = async (id, updateData, onSuccess) => {
+  const handleUpdateVehicle = useCallback(async (id, updateData, onSuccess) => {
     try {
       setIsLoading(true);
       setErrors({});
@@ -184,10 +184,10 @@ export const useVehicleOperations = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userHasAdminRole]);
 
   // Función para eliminar vehículo
-  const handleDeleteVehicle = async (id, onSuccess) => {
+  const handleDeleteVehicle = useCallback(async (id, onSuccess) => {
     try {
       setIsLoading(true);
       setErrors({});
@@ -213,12 +213,12 @@ export const useVehicleOperations = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userHasAdminRole]);
 
-  // Función para limpiar errores
-  const clearErrors = () => {
+  // Función para limpiar errores - CORREGIDA con useCallback
+  const clearErrors = useCallback(() => {
     setErrors({});
-  };
+  }, []);
 
   return {
     // Funciones de operaciones
@@ -244,17 +244,18 @@ export const useVehicleForm = (initialData = {}) => {
     brand: '',
     model: '',
     capacity: '',
-    vehicleType: '', // MANTENER como vehicleType para consistencia
+    carType: '', // Cambiado de vehicleType a carType para coincidir con el formulario
     pricePerDay: '',
     kilometers: '',
     features: [],
+    image: null,
     ...initialData
   });
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     
     // Formateo especial para campos numéricos
@@ -281,15 +282,17 @@ export const useVehicleForm = (initialData = {}) => {
     }
 
     // Limpiar error específico cuando el usuario empieza a escribir
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
-  };
+    setErrors(prev => {
+      if (prev[name]) {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      }
+      return prev;
+    });
+  }, []);
 
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const newErrors = {};
 
     // Validaciones básicas
@@ -311,8 +314,8 @@ export const useVehicleForm = (initialData = {}) => {
       newErrors.capacity = 'La capacidad debe estar entre 1 y 50 personas';
     }
 
-    if (!formData.vehicleType) {
-      newErrors.vehicleType = 'El tipo de vehículo es requerido';
+    if (!formData.carType) {
+      newErrors.carType = 'El tipo de vehículo es requerido';
     }
 
     if (!formData.pricePerDay) {
@@ -329,22 +332,23 @@ export const useVehicleForm = (initialData = {}) => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData]);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setFormData({
       name: '',
       brand: '',
       model: '',
       capacity: '',
-      vehicleType: '',
+      carType: '',
       pricePerDay: '',
       kilometers: '',
       features: [],
+      image: null,
       ...initialData
     });
     setErrors({});
-  };
+  }, [initialData]);
 
   return {
     formData,
@@ -361,7 +365,7 @@ export const useVehicleForm = (initialData = {}) => {
 
 // Hook para debug y testing
 export const useVehicleDebug = () => {
-  const testConnection = async () => {
+  const testConnection = useCallback(async () => {
     try {
       console.log('🧪 Probando conexión con backend de vehículos...');
       const result = await testVehicleConnection();
@@ -373,9 +377,9 @@ export const useVehicleDebug = () => {
         error: error.message 
       };
     }
-  };
+  }, []);
 
-  const checkAuth = () => {
+  const checkAuth = useCallback(() => {
     const authenticated = isAuthenticated();
     const adminRole = hasAdminRole();
     const userInfo = getCurrentUser();
@@ -390,7 +394,7 @@ export const useVehicleDebug = () => {
       hasAdminRole: adminRole,
       userInfo: userInfo
     };
-  };
+  }, []);
 
   return {
     testConnection,
