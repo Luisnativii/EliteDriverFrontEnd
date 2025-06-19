@@ -91,18 +91,41 @@ const transformVehicleData = (apiVehicle) => {
 const transformVehicleForAPI = (vehicleData) => {
   console.log('🔄 Transformando vehículo para API:', vehicleData);
   
-  // Estructura exacta que espera el backend según CreateVehicleDTO
+  // Procesar features de manera más robusta
+  let processedFeatures = [];
+  if (vehicleData.features) {
+    if (Array.isArray(vehicleData.features)) {
+      processedFeatures = vehicleData.features.filter(f => f && typeof f === 'string' && f.trim() !== '');
+    } else if (typeof vehicleData.features === 'string') {
+      processedFeatures = vehicleData.features.split(',').map(f => f.trim()).filter(f => f !== '');
+    }
+  }
+  
+  // Validar datos requeridos antes de crear el objeto
+  const name = vehicleData.name?.toString().trim();
+  const brand = vehicleData.brand?.toString().trim();
+  const model = vehicleData.model?.toString().trim();
+  const capacity = parseInt(vehicleData.capacity);
+  const pricePerDay = parseFloat(vehicleData.pricePerDay || vehicleData.price);
+  const kilometers = parseInt(vehicleData.kilometers);
+  const vehicleType = vehicleData.vehicleType || vehicleData.type;
+  
+  // Validar que todos los campos requeridos estén presentes
+  if (!name || !brand || !model || isNaN(capacity) || isNaN(pricePerDay) || isNaN(kilometers) || !vehicleType) {
+    console.error('❌ Datos incompletos:', { name, brand, model, capacity, pricePerDay, kilometers, vehicleType });
+    throw new Error('Todos los campos son requeridos y deben tener valores válidos');
+  }
+  
   const apiData = {
-    name: vehicleData.name,
-    brand: vehicleData.brand,
-    model: vehicleData.model,
-    capacity: parseInt(vehicleData.capacity),
-    pricePerDay: parseFloat(vehicleData.pricePerDay || vehicleData.price),
-    kilometers: parseInt(vehicleData.kilometers),
-    features: vehicleData.features || [],
-    // CORRECCIÓN CRÍTICA: Estructura correcta para vehicleType
+    name,
+    brand,
+    model,
+    capacity,
+    pricePerDay,
+    kilometers,
+    features: processedFeatures,
     vehicleType: {
-      type: vehicleData.vehicleType || vehicleData.type || vehicleData.carType
+      type: vehicleType
     }
   };
   

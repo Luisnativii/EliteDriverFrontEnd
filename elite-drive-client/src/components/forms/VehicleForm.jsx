@@ -5,7 +5,7 @@ import { Car, Users, DollarSign, MapPin, Save, X, AlertCircle } from 'lucide-rea
 const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
   const isEditing = !!vehicle;
   const { createVehicle, updateVehicle, isLoading, errors, clearErrors } = useVehicleOperations();
-  
+
   const {
     formData,
     errors: formErrors,
@@ -19,7 +19,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
     brand: vehicle.brand || '',
     model: vehicle.model || '',
     capacity: vehicle.capacity?.toString() || '',
-    carType: vehicle.type || '',
+    vehicleType: vehicle.type || '',
     pricePerDay: vehicle.price?.toString() || '',
     kilometers: vehicle.kilometers?.toString() || '',
     features: vehicle.features || [],
@@ -29,9 +29,9 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
   // Opciones para el select de tipo de vehículo
   const vehicleTypes = [
     { value: '', label: 'Selecciona un tipo' },
-    { value: 'sedán', label: 'Sedán' },
-    { value: 'suv', label: 'SUV' },
-    { value: 'pickup', label: 'Pickup' },
+    { value: 'Sedan', label: 'Sedán' },
+    { value: 'SUV', label: 'SUV' },
+    { value: 'PickUp', label: 'Pickup' },
   ];
 
   // Limpiar errores al montar el componente
@@ -39,28 +39,55 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
     clearErrors();
   }, [clearErrors]);
 
-  // Manejar características
+  // Manejar características - CORREGIDO
   const handleFeaturesChange = (e) => {
     const value = e.target.value;
-    const featuresArray = value.split(',').map(f => f.trim()).filter(f => f);
+
     setFormData(prev => ({
       ...prev,
-      features: featuresArray
+      featuresText: value, // Texto tal como lo escribe el usuario
+      features: value ? value.split(',').map(f => f.trim()).filter(f => f !== '') : []
     }));
+
+    // Limpiar errores si los hay
+    if (formErrors.features) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.features;
+        return newErrors;
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     try {
+      // CORRECCIÓN: Procesar las features correctamente
+      const submitData = {
+        name: formData.name.trim(),
+        brand: formData.brand.trim(),
+        model: formData.model.trim(),
+        capacity: parseInt(formData.capacity),
+        vehicleType: formData.vehicleType,
+        pricePerDay: parseFloat(formData.pricePerDay),
+        kilometers: parseInt(formData.kilometers),
+        features: formData.featuresText
+          ? formData.featuresText.split(',').map(f => f.trim()).filter(f => f !== '')
+          : [],
+        image: formData.image
+      };
+
+      console.log('🔧 Datos a enviar:', submitData);
+
       if (isEditing) {
-        await updateVehicle(vehicle.id, formData, onSuccess);
+        await updateVehicle(vehicle.id, submitData, onSuccess);
       } else {
-        await createVehicle(formData, onSuccess);
+        await createVehicle(submitData, onSuccess);
       }
     } catch (error) {
       console.error('Error in form submission:', error);
@@ -96,9 +123,8 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
-              allErrors.name ? 'border-red-500/50' : 'border-white/20'
-            }`}
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${allErrors.name ? 'border-red-500/50' : 'border-white/20'
+              }`}
             placeholder="Ej: Toyota Corolla 2023"
           />
           {allErrors.name && (
@@ -107,17 +133,16 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
         </div>
 
         <div>
-          <label htmlFor="carType" className="block text-sm font-semibold text-white mb-2">
+          <label htmlFor="vehicleType" className="block text-sm font-semibold text-white mb-2">
             Tipo de Vehículo *
           </label>
           <select
-            id="carType"
-            name="carType"
-            value={formData.carType}
+            id="vehicleType"
+            name="vehicleType"
+            value={formData.vehicleType}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent appearance-none transition-all duration-300 hover:bg-white/15 ${
-              allErrors.carType ? 'border-red-500/50' : 'border-white/20'
-            }`}
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent appearance-none transition-all duration-300 hover:bg-white/15 ${allErrors.vehicleType ? 'border-red-500/50' : 'border-white/20'
+              }`}
           >
             {vehicleTypes.map(type => (
               <option key={type.value} value={type.value} className="bg-gray-900 text-white">
@@ -125,8 +150,8 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
               </option>
             ))}
           </select>
-          {allErrors.carType && (
-            <p className="mt-2 text-sm text-red-300">{allErrors.carType}</p>
+          {allErrors.vehicleType && (
+            <p className="mt-2 text-sm text-red-300">{allErrors.vehicleType}</p>
           )}
         </div>
       </div>
@@ -143,9 +168,8 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="brand"
             value={formData.brand}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
-              allErrors.brand ? 'border-red-500/50' : 'border-white/20'
-            }`}
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${allErrors.brand ? 'border-red-500/50' : 'border-white/20'
+              }`}
             placeholder="Ej: Toyota"
           />
           {allErrors.brand && (
@@ -163,9 +187,8 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="model"
             value={formData.model}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
-              allErrors.model ? 'border-red-500/50' : 'border-white/20'
-            }`}
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${allErrors.model ? 'border-red-500/50' : 'border-white/20'
+              }`}
             placeholder="Ej: Corolla"
           />
           {allErrors.model && (
@@ -187,9 +210,8 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="capacity"
             value={formData.capacity}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
-              allErrors.capacity ? 'border-red-500/50' : 'border-white/20'
-            }`}
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${allErrors.capacity ? 'border-red-500/50' : 'border-white/20'
+              }`}
             placeholder="Ej: 5"
           />
           {allErrors.capacity && (
@@ -208,9 +230,8 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             name="kilometers"
             value={formData.kilometers}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
-              allErrors.kilometers ? 'border-red-500/50' : 'border-white/20'
-            }`}
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${allErrors.kilometers ? 'border-red-500/50' : 'border-white/20'
+              }`}
             placeholder="Ej: 50000"
           />
           {allErrors.kilometers && (
@@ -231,9 +252,8 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
           name="pricePerDay"
           value={formData.pricePerDay}
           onChange={handleChange}
-          className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
-            allErrors.pricePerDay ? 'border-red-500/50' : 'border-white/20'
-          }`}
+          className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${allErrors.pricePerDay ? 'border-red-500/50' : 'border-white/20'
+            }`}
           placeholder="Ej: 45.00"
         />
         {allErrors.pricePerDay && (
@@ -241,7 +261,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
         )}
       </div>
 
-      {/* Características */}
+      {/* Características - CORREGIDO */}
       <div>
         <label htmlFor="features" className="block text-sm font-semibold text-white mb-2">
           Características (separadas por comas)
@@ -249,7 +269,7 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
         <textarea
           id="features"
           name="features"
-          value={formData.features.join(', ')}
+          value={formData.featuresText || (Array.isArray(formData.features) ? formData.features.join(', ') : '')}
           onChange={handleFeaturesChange}
           rows={3}
           className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15"
@@ -258,6 +278,19 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
         <p className="mt-2 text-xs text-white/60">
           Separa cada característica con una coma
         </p>
+        {/* Preview de características */}
+        {formData.features.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {formData.features.map((feature, index) => (
+              <span
+                key={index}
+                className="px-2 py-1 bg-blue-500/20 text-blue-200 text-xs rounded-full border border-blue-500/30"
+              >
+                {feature}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* URL de imagen */}
@@ -296,8 +329,8 @@ const VehicleForm = ({ vehicle = null, onSuccess, onCancel }) => {
             <>
               <div className="w-4 h-4 mr-2 animate-spin">
                 <svg className="w-full h-full" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
               </div>
               {isEditing ? 'Actualizando...' : 'Creando...'}

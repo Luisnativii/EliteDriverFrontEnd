@@ -240,17 +240,28 @@ export const useVehicleOperations = () => {
 // Hook CORREGIDO para manejo de formularios de vehículos
 export const useVehicleForm = (initialData = {}) => {
   const [formData, setFormData] = useState({
-    name: '',
-    brand: '',
-    model: '',
-    capacity: '',
-    carType: '', // Cambiado de vehicleType a carType para coincidir con el formulario
-    pricePerDay: '',
-    kilometers: '',
-    features: [],
-    image: null,
-    ...initialData
-  });
+  name: '',
+  brand: '',
+  model: '',
+  capacity: '',
+  vehicleType: '', 
+  pricePerDay: '',
+  kilometers: '',
+  features: [],
+  image: null,
+  ...initialData,
+  // CORRECCIÓN: Manejar featuresText correctamente
+  featuresText: (() => {
+    if (initialData.features) {
+      if (Array.isArray(initialData.features)) {
+        return initialData.features.join(', ');
+      } else if (typeof initialData.features === 'string') {
+        return initialData.features;
+      }
+    }
+    return '';
+  })()
+});
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -314,8 +325,8 @@ export const useVehicleForm = (initialData = {}) => {
       newErrors.capacity = 'La capacidad debe estar entre 1 y 50 personas';
     }
 
-    if (!formData.carType) {
-      newErrors.carType = 'El tipo de vehículo es requerido';
+    if (!formData.vehicleType) {
+      newErrors.vehicleType = 'El tipo de vehículo es requerido';
     }
 
     if (!formData.pricePerDay) {
@@ -340,12 +351,13 @@ export const useVehicleForm = (initialData = {}) => {
       brand: '',
       model: '',
       capacity: '',
-      carType: '',
+      vehicleType: '',
       pricePerDay: '',
       kilometers: '',
       features: [],
       image: null,
-      ...initialData
+      ...initialData,
+      featuresText: initialData.features ? initialData.features.join(', ') : ''
     });
     setErrors({});
   }, [initialData]);
