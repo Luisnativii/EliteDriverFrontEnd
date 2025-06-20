@@ -108,8 +108,8 @@ const VehiclesPage = () => {
                     Todos
                 </button>
                 <button 
-                    className={`px-7 py-2 cursor-pointer hover:scale-105 transition-all duration-200 rounded-full ${filteredType === 'Sedán' ? 'bg-neutral-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                    onClick={() => setFilteredType('Sedán')}
+                    className={`px-7 py-2 cursor-pointer hover:scale-105 transition-all duration-200 rounded-full ${filteredType === 'Sedan' ? 'bg-neutral-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                    onClick={() => setFilteredType('Sedan')}
                 >
                     Sedán
                 </button>
@@ -120,8 +120,8 @@ const VehiclesPage = () => {
                     SUV
                 </button>
                 <button 
-                    className={`px-7 py-2 cursor-pointer hover:scale-105 transition-all duration-200 rounded-full ${filteredType === 'PickUP' ? 'bg-neutral-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                    onClick={() => setFilteredType('PickUP')}
+                    className={`px-7 py-2 cursor-pointer hover:scale-105 transition-all duration-200 rounded-full ${filteredType === 'PickUp' ? 'bg-neutral-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                    onClick={() => setFilteredType('PickUp')}
                 >
                     PickUP
                 </button>

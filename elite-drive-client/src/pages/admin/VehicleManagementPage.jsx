@@ -101,7 +101,7 @@ const VehicleManagementPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black/30">
+    <div className="min-h-screen bg-neutral-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header y filtros usando VehicleFilterForm */}
         <div className="mt-15">
@@ -191,7 +191,7 @@ const VehicleManagementPage = () => {
                 'No hay vehículos registrados'
               }
             </h3>
-            <p className="text-white/70 text-sm mb-8 text-lg">
+            <p className="text-white/70 text-sm mb-8">
               {searchTerm || filterType !== 'all' ?
                 'Intenta ajustar tus filtros de búsqueda' :
                 'Comienza agregando tu primer vehículo a la flota premium'
@@ -200,7 +200,7 @@ const VehicleManagementPage = () => {
             {(!searchTerm && filterType === 'all' && hasAdminRole) && (
               <button
                 onClick={handleAddVehicle}
-                className="inline-flex text-sm items-center px-8 py-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-lg font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-xl"
+                className="inline-flex text-sm items-center px-8 py-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-xl"
               >
                 <Plus className="w-5 h-5 mr-3 " />
                 Agregar Primer Vehículo

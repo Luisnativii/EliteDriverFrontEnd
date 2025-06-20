@@ -31,7 +31,7 @@ const VehicleFactDetail = ({ vehicle }) => {
                 <div className="space-y-3">
                     <div className="flex justify-between">
                         <span className="text-gray-600 font-medium">Marca:</span>
-                        <span className="text-gray-900">{vehicle.Brand || 'No especificada'}</span>
+                        <span className="text-gray-900">{vehicle.brand || 'No especificada'}</span>
                     </div>
 
                     <div className="flex justify-between">
