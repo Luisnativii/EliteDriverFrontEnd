@@ -18,48 +18,54 @@ import Login from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import VehicleTypeDetailPage from './pages/customer/VehicleTypeDetailPage';
 import RootRedirect from './components/RootRedirect';
+import { Outlet } from "react-router-dom";
+
 
 const App = () => (
   <Router>
     <AuthProvider>
       <DateProvider>
         <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<RootRedirect />} />
+          {/* Rutas públicas sin necesidad de login */}
+          <Route element={<Layout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/customer/vehicles" element={<VehiclesPage />} />
+            <Route path="/customer/vehicle-type/:vehicleType" element={<VehicleTypeDetailPage />} />
+          </Route>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<RegisterPage />} />
-          
-          {/* Private routes with Layout */}
-          <Route path="/admin" element={
-            <ProtectedRoute requiredRole="admin">
-              <Layout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<DashboardPage />} />
-            <Route path="maintenance" element={<MaintenancePage />} />
-            <Route path="reservation" element={<ReservationManagementPage />} />
-            <Route path="vehicle" element={<VehicleManagementPage />} />
+
+          {/* Layout común (sidebar dinámico según estado de login) */}
+          <Route element={<Layout />}>
+            {/* Rutas protegidas ADMIN */}
+            <Route path="/admin" element={
+              <ProtectedRoute requiredRole="admin">
+                <Outlet />
+              </ProtectedRoute>
+            }>
+              <Route index element={<DashboardPage />} />
+              <Route path="maintenance" element={<MaintenancePage />} />
+              <Route path="reservation" element={<ReservationManagementPage />} />
+              <Route path="vehicle" element={<VehicleManagementPage />} />
+            </Route>
+
+            {/* Rutas protegidas CUSTOMER */}
+            <Route path="/customer" element={
+              <ProtectedRoute requiredRole="customer">
+                <Outlet />
+              </ProtectedRoute>
+            }>
+              <Route index element={<HomePage />} />
+              <Route path="my-reservations" element={<MyReservationPage />} />
+              <Route path="reservation-page/:vehicleId" element={<ReservationPage />} />
+              <Route path="vehicles/:id" element={<VehicleDetailPage />} />
+            </Route>
           </Route>
-          
-          <Route path="/customer" element={
-            <ProtectedRoute requiredRole="customer">
-              <Layout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<HomePage />} />
-            <Route path="my-reservations" element={<MyReservationPage />} />
-            <Route path="reservation-page/:vehicleId" element={<ReservationPage />} />
-            <Route path="vehicles" element={<VehiclesPage />} />
-            <Route path="vehicles/:id" element={<VehicleDetailPage />} />
-            <Route path="vehicle-type/:vehicleType" element={<VehicleTypeDetailPage />} />
-          </Route>
-          
-          {/* Root redirect - handle this after auth check */}
-          <Route path="/" element={<ProtectedRoute><Navigate to="/customer" replace /></ProtectedRoute>} />
-          
-          {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+
+          {/* Redirección si no se encuentra ruta */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+
       </DateProvider>
     </AuthProvider>
   </Router>

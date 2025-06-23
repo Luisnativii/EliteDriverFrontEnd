@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { login } from "../../services/authService";
 import { useAuth } from "../../hooks/useAuth";
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const LoginForm = ({ onRegisterClick }) => {
   const { login: loginContext } = useAuth();
@@ -10,6 +10,7 @@ const LoginForm = ({ onRegisterClick }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -27,27 +28,28 @@ const LoginForm = ({ onRegisterClick }) => {
       console.log('LoginForm - Iniciando autenticación...');
       const authData = await login(form);
       console.log('LoginForm - Datos recibidos del servidor:', authData);
-      
+
       // Step 2: Update context with the authenticated user data
       console.log('LoginForm - Actualizando contexto...');
       const contextResult = await loginContext(authData);
-      
+
       if (contextResult.success) {
-        // Step 3: Redirect based on user role
+        const redirectTo = location.state?.redirectTo;
         const userRole = authData.user?.role?.toLowerCase();
         console.log('LoginForm - Rol del usuario:', userRole);
-        
-        if (userRole === 'admin') {
-          console.log('LoginForm - Redirigiendo a admin dashboard');
+
+        if (redirectTo) {
+          console.log('Redirigiendo al destino guardado:', redirectTo);
+          navigate(redirectTo, { replace: true });
+        } else if (userRole === 'admin') {
           navigate('/admin');
         } else {
-          console.log('LoginForm - Redirigiendo a customer homepage');
           navigate('/customer');
         }
       } else {
         setError('Error al actualizar el contexto de usuario');
       }
-      
+
     } catch (err) {
       console.error('LoginForm - Error en login:', err);
       setError(err.message || 'Credenciales inválidas');
@@ -109,7 +111,7 @@ const LoginForm = ({ onRegisterClick }) => {
             <input type="checkbox" className="mr-2 rounded" />
             Recordarme
           </label>
-          <button 
+          <button
             type="button"
             className="text-red-400 hover:text-red-300 transition-colors"
             disabled={isLoading}
@@ -121,11 +123,10 @@ const LoginForm = ({ onRegisterClick }) => {
         <button
           type="submit"
           disabled={isLoading}
-          className={`w-full mb-2 bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-red-500/50 transform transition-all duration-300 shadow-lg ${
-            isLoading 
-              ? 'opacity-50 cursor-not-allowed' 
+          className={`w-full mb-2 bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-red-500/50 transform transition-all duration-300 shadow-lg ${isLoading
+              ? 'opacity-50 cursor-not-allowed'
               : 'hover:from-red-700 hover:to-red-800 hover:scale-[1.02]'
-          }`}
+            }`}
         >
           {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
         </button>

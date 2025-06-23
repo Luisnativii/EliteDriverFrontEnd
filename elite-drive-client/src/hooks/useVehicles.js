@@ -250,18 +250,25 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
     kilometers: '',
     features: [],
     image: null,
-    ...initialData,
-    // CORRECCIÓN: Manejar featuresText correctamente
-    featuresText: (() => {
-      if (initialData.features) {
-        if (Array.isArray(initialData.features)) {
-          return initialData.features.join(', ');
-        } else if (typeof initialData.features === 'string') {
-          return initialData.features;
-        }
+    mainImageUrl: initialData.mainImageUrl || '',
+    kmForMaintenance: initialData.kmForMaintenance?.toString() || '',
+  imageUrlsText: Array.isArray(initialData.imageUrls)
+    ? initialData.imageUrls.join(', ')
+    : (initialData.imageUrls || ''),
+
+  // Texto editable para características
+  featuresText: (() => {
+    if (initialData.features) {
+      if (Array.isArray(initialData.features)) {
+        return initialData.features.join(', ');
+      } else if (typeof initialData.features === 'string') {
+        return initialData.features;
       }
-      return '';
-    })()
+    }
+    return '';
+    })(),
+    // Sobrescribir con lo que venga en initialData
+  ...initialData
   });
 
   const [errors, setErrors] = useState({});

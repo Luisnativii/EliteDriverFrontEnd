@@ -73,12 +73,14 @@ const VehicleTypeDetailPage = () => {
     };
 
     useEffect(() => {
+        
         if (vehicleType && vehicleConfig[vehicleType]) {
             setVehicleData(vehicleConfig[vehicleType]);
         }
     }, [vehicleType]);
 
     const handleBackToHome = () => {
+        
         navigate('/customer');
     };
 

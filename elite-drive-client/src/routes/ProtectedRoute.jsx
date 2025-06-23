@@ -10,10 +10,10 @@ const ProtectedRoute = ({ children, requiredRole }) => {
     return <div>Cargando...</div>;
   }
 
-  // Si no hay usuario, redirigir al login
+  // Si no hay usuario, redirigir a la pagina principal
   if (!user || !user.isAuthenticated) {
-    console.log("Usuario no autenticado, redirigiendo a login");
-    return <Navigate to="/login" replace />;
+    console.log("Usuario no autenticado, redirigiendo a pagina principal");
+    return <Navigate to="/" replace />;
   }
 
   // Si se requiere un rol específico, verificar

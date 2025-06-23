@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useDateContext } from '../../context/DateContext';
 import ReservationService from '../../services/reservationService';
+import { useReservation } from '../../hooks/useReservations';
+import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+
 
 const FacturationDetail = ({ vehicle, onReservation }) => {
+    const { user } = useAuth();
+    const { createReservation, isLoading } = useReservation();
     const { startDate: contextStartDate, endDate: contextEndDate, setStartDate, setEndDate } = useDateContext();
     const [startDate, setLocalStartDate] = useState(contextStartDate || '');
     const [endDate, setLocalEndDate] = useState(contextEndDate || '');
     const [totalDays, setTotalDays] = useState(0);
     const [totalPrice, setTotalPrice] = useState(0);
     const [errors, setErrors] = useState([]);
-    
+    const navigate = useNavigate();
+
+
+
     // Sincronizar con el contexto al montar el componente
     useEffect(() => {
         if (contextStartDate && !startDate) {
@@ -30,13 +39,13 @@ const FacturationDetail = ({ vehicle, onReservation }) => {
         setLocalEndDate(newDate);
         setEndDate(newDate);
     };
-    
+
     // Calcular días y precio total cuando cambien las fechas usando el servicio
     useEffect(() => {
         if (startDate && endDate && vehicle) {
             const calculation = ReservationService.calculateTotalPrice(
-                startDate, 
-                endDate, 
+                startDate,
+                endDate,
                 vehicle.price
             );
             setTotalDays(calculation.days);
@@ -46,42 +55,56 @@ const FacturationDetail = ({ vehicle, onReservation }) => {
             setTotalPrice(0);
         }
     }, [startDate, endDate, vehicle]);
-
-    const handleReservation = () => {
+    const handleReservation = async () => {
         setErrors([]);
-        
-        // Preparar datos de la reserva
+
         const reservationData = {
             vehicleId: vehicle.id,
+            userId: user?.id,
             startDate,
-            endDate,
-            totalDays,
-            totalPrice
+            endDate
         };
 
-        // Validar usando el servicio
         const validation = ReservationService.validateReservation(reservationData);
-        
         if (!validation.isValid) {
             setErrors(validation.errors);
+            setIsLoading(false);
             return;
         }
 
-        // Si se pasa una función onReservation, la ejecuta
-        if (onReservation) {
-            onReservation(reservationData);
-        } else {
-            // Lógica por defecto - solo mostrar alerta
-            alert('¡Reserva realizada con éxito!');
+        try {
+            const result = await createReservation(reservationData);
+
+            if (result.success) {
+                alert('✅ ¡Reserva realizada con éxito!');
+                if (onReservation) onReservation(result.data);
+                navigate('/customer/my-reservations'); // Redirección automática
+            } else {
+                setErrors([result.error || 'Error desconocido al crear la reserva vehiculo ya reservado']);
+            }
+        } catch (error) {
+            const raw = error.message || '';
+            const match = raw.match(/"([^"]+)"/); // busca el texto dentro de comillas
+
+            const cleanMessage = match && match[1]
+                ? match[1] // extrae solo el mensaje real, sin códigos
+                : '❌ Error al crear la reserva.';
+
+            setErrors([cleanMessage]);
         }
+
+
+
     };
+
+
 
     if (!vehicle) return null;
 
     return (
         <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6">Detalles de la Reserva</h3>
-            
+
             <div className="space-y-6">
                 {/* Mostrar errores si existen */}
                 {errors.length > 0 && (
@@ -168,10 +191,10 @@ const FacturationDetail = ({ vehicle, onReservation }) => {
                 {/* Botón de alquilar */}
                 <button
                     onClick={handleReservation}
-                    disabled={!startDate || !endDate || totalDays <= 0}
+                    disabled={!startDate || !endDate || totalDays <= 0 || isLoading}
                     className="w-full cursor-pointer bg-red-600 text-white py-3 px-4 rounded-md font-semibold text-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
-                    Alquilar Vehículo
+                    {isLoading ? 'Procesando...' : 'Alquilar Vehículo'}
                 </button>
 
                 {/* Información adicional */}

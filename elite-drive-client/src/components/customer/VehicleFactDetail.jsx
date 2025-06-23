@@ -1,29 +1,17 @@
 import React from 'react';
+import VehicleImageGallery from '../layout/VehicleImageGallery';
 
 const VehicleFactDetail = ({ vehicle }) => {
     if (!vehicle) {
         return <div>No vehicle data available</div>;
     }
-
     return (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            {/* Imagen del vehículo */}
-            <div className="h-64 bg-gray-200 flex items-center justify-center">
-                {vehicle.image ? (
-                    <img
-                        src={vehicle.image}
-                        alt={vehicle.name}
-                        className="h-full w-full object-cover"
-                    />
-                ) : (
-                    <div className="text-gray-400">
-                        <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                        </svg>
-                    </div>
-                )}
-            </div>
-
+            {/* Galería de imágenes con miniaturas */}
+            <VehicleImageGallery
+                mainImage={vehicle.image} // o vehicle.mainImageUrl
+                imageUrls={vehicle.imageUrls}
+            />
             {/* Información del vehículo */}
             <div className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">{vehicle.name}</h2>
@@ -65,7 +53,7 @@ const VehicleFactDetail = ({ vehicle }) => {
             {/* Características adicionales */}
             <div className="p-6">
                 {vehicle.features && vehicle.features.length > 0 && (
-                    <div className="mt-6">
+                    <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-3">Características</h3>
                         <div className="flex flex-wrap gap-2">
                             {vehicle.features.map((feature, index) => (
