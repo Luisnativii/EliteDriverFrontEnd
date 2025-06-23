@@ -1,5 +1,5 @@
 // config/apiConfig.js
-export const API_BASE_URL = '/api'; // Cambiado: puerto 8080 y agregado /api
+export const API_BASE_URL =  import.meta.env.VITE_API_BASE_URL || '/api'; // Cambiado: puerto 8080 y agregado /api
 // export const API_BASE_URL = 'http://localhost:8080/api'; // URL completa para desarrollo
 
 // Configuración de endpoints
@@ -18,10 +18,11 @@ export const API_ENDPOINTS = {
   },
   RESERVATIONS: {
     GET_ALL: '/reservations',                    // GET /api/reservations
-    GET_BY_USER: '/reservations/user/:userId',   // GET /api/reservations/user/:userId
+    GET_BY_USER: '/reservations/user',   // GET /api/reservations/user/:userId
     CREATE: '/reservations',                     // POST /api/reservations
     UPDATE: '/reservations/:id',                 // PUT /api/reservations/:id
-    CANCEL: '/reservations/:id/cancel'           // PUT /api/reservations/:id/cancel
+    CANCEL: '/reservations/:id',           // DELETE /api/reservations/:id/cancel
+    GET_BY_DATE: '/reservations/date?startDate=:startDate&endDate=:endDate'  // GET /api/reservations/date?StartDate=date&EndDate=date
   }
 };
 

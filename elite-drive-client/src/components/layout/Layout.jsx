@@ -9,14 +9,6 @@ const Layout = () => {
   const { user } = useAuth();
   const { showSidebar, isMobile, toggleSidebar } = useLayout();
 
-  if (!user?.isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p className="text-lg text-gray-600">No autorizado. Por favor, inicie sesión.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-screen bg-neutral-900 w-screen overflow-hidden">
       {/* Mobile sidebar overlay */}
@@ -27,7 +19,7 @@ const Layout = () => {
         />
       )}
 
-      {/* Sidebar with smooth transitions */}
+      {/* Sidebar */}
       <div className={`
         transition-all duration-300 ease-in-out
         ${isMobile 
@@ -40,16 +32,10 @@ const Layout = () => {
 
       {/* Main content area */}
       <div className="bg-neutral-900 flex flex-col flex-1 overflow-hidden">
-        {/* Header siempre visible */}
         <Header toggleSidebar={toggleSidebar} showSidebar={showSidebar && !isMobile} />
-                
-        {/* Main content with padding-top for fixed header */}
-        <main className="
-          flex-1 overflow-auto transition-all duration-300
-          custom-scrollbar
-        ">
+        
+        <main className="flex-1 overflow-auto transition-all duration-300 custom-scrollbar">
           <div className="min-h-full">
-            {/* Contenido principal con animación de entrada */}
             <div className="animate-fade-in">
               <Outlet />
             </div>
@@ -57,8 +43,8 @@ const Layout = () => {
         </main>
       </div>
 
-      {/* Estilos CSS personalizados mejorados */}
-      <style >{`
+      {/* Scrollbar & animation styles */}
+      <style>{`
         .animate-fade-in {
           animation: fadeIn 0.3s ease-in-out;
         }
@@ -74,10 +60,9 @@ const Layout = () => {
           }
         }
 
-        /* Scrollbar personalizado más delgado con fondo negro */
         .custom-scrollbar {
           scrollbar-width: thin;
-          scrollbar-color:rgb(56, 58, 61) #000000;
+          scrollbar-color: rgb(56, 58, 61) #000000;
         }
                 
         .custom-scrollbar::-webkit-scrollbar {
@@ -95,7 +80,7 @@ const Layout = () => {
         }
                 
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background:rgb(68, 71, 76);
+          background: rgb(68, 71, 76);
         }
       `}</style>
     </div>

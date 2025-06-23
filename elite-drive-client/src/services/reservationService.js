@@ -1,39 +1,86 @@
+import { API_BASE_URL, API_ENDPOINTS, buildEndpoint } from '../config/apiConfig';
+
+
 class ReservationService {
-    // Simular llamada a API para crear reserva
+    //llamada a API para crear reserva
     static async createReservation(reservationData) {
-        try {
-            // Simular delay de red
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Poner la llamada real la  API
-            // const response = await fetch('/api/reservations', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     body: JSON.stringify(reservationData)
-            // });
-            
-            // Simular respuesta exitosa
-            const mockResponse = {
-                id: Date.now(),
-                ...reservationData,
-                status: 'confirmed',
-                createdAt: new Date().toISOString()
-            };
-            
-            return {
-                success: true,
-                data: mockResponse
-            };
-        } catch (error) {
-            console.error('Error creating reservation:', error);
-            return {
-                success: false,
-                error: error.message || 'Error al crear la reserva'
-            };
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        const url = `${API_BASE_URL}${API_ENDPOINTS.RESERVATIONS.CREATE}`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` })
+            },
+            body: JSON.stringify(reservationData),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+
+            // Intenta extraer el mensaje dentro del campo "error"
+            const rawError = errorData?.error || 'Error al crear la reserva';
+
+            // Si contiene un mensaje entre comillas, lo extraemos
+            const match = rawError.match(/"([^"]+)"/);
+            const cleanMessage = match && match[1] ? match[1] : rawError;
+
+            throw new Error(cleanMessage);
         }
+        const data = await response.json();
+        return {
+            success: true,
+            data
+        };
     }
+
+    //eliminar reservacion
+    static async deleteReservation(reservationId) {
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+
+        const url = `${API_BASE_URL}${buildEndpoint(API_ENDPOINTS.RESERVATIONS.CANCEL, { id: reservationId })}`;
+
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` })
+            }
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Error al cancelar la reserva');
+        }
+
+        return { success: true };
+    }
+
+
+    //peticion de rango de fechas
+    static async getReservationsByDateRange(startDate, endDate) {
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        const endpoint = buildEndpoint(API_ENDPOINTS.RESERVATIONS.GET_BY_DATE, { startDate, endDate });
+        const url = `${API_BASE_URL}${endpoint}`;
+        const response = await fetch(url,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token && { Authorization: `Bearer ${token}` })
+                }
+            }
+        );
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText);
+        }
+
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : [];
+        return data;
+    }
+
 
     // Validar datos de reserva
     static validateReservation(reservationData) {
@@ -86,6 +133,31 @@ class ReservationService {
             totalPrice: diffDays > 0 ? diffDays * pricePerDay : 0
         };
     }
+
+    //obtener las reservaciones del usuario
+    static async getReservationsByUser(userId) {
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+
+    const url = `${API_BASE_URL}${API_ENDPOINTS.RESERVATIONS.GET_BY_USER}?userId=${userId}`;
+
+
+    const response = await fetch(url, {
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` })
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Error al obtener reservas');
+    }
+
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : [];
+    return { success: true, data };
+}
+
 }
 
 export default ReservationService;

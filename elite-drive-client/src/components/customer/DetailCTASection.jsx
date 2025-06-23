@@ -1,7 +1,7 @@
 import React from "react";
 
 
-const DetailCTASection =({ title, onViewVehicles, onReserve }) =>  (
+const DetailCTASection =({ title, onViewVehicles }) =>  (
 <section className="bg-neutral-800 text-white py-16 px-5">
                 <div className="max-w-4xl mx-auto text-center">
                     <h2 className="text-2xl md:text-3xl font-bold mb-6">
@@ -17,12 +17,7 @@ const DetailCTASection =({ title, onViewVehicles, onReserve }) =>  (
                         >
                             Ver Modelos
                         </button>
-                        <button
-                            onClick={onReserve}
-                            className="border border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-neutral-800 transition-colors"
-                        >
-                            Hacer Reserva
-                        </button>
+                        
                     </div>
                 </div>
             </section>

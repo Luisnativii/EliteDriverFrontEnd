@@ -43,8 +43,8 @@ const DateForm = ({ variant = 'default', onSearch }) => {
     // Estilos para la variante de vehicles (compacto y horizontal)
     const vehiclesStyles = {
         container: "flex items-center gap-4",
-        title: "text-gray-800 text-sm font-medium",
-        label: "text-gray-700 font-medium text-xs block mb-1",
+        title: "text-white text-sm font-medium",
+        label: "text-white font-medium text-xs block mb-1",
         input: `
             border border-gray-300 rounded-lg px-3 py-2 text-sm
             focus:outline-none focus:ring-2 focus:ring-neutral-500 

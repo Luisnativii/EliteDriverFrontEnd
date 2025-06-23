@@ -49,7 +49,7 @@ authApi.interceptors.response.use(
       // Token expirado o inválido
       localStorage.removeItem('authToken');
       localStorage.removeItem('userData');
-      window.location.href = '/login';
+      window.location.href = '/';
     }
     return Promise.reject(error);
   }
@@ -175,7 +175,7 @@ export const logout = () => {
   console.log('Cerrando sesión');
   localStorage.removeItem('authToken');
   localStorage.removeItem('userData');
-  window.location.href = '/login';
+  window.location.href = '/'; //redirigir al homepage en vez del login
 };
 
 export const getCurrentUser = () => {

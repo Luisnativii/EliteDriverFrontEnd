@@ -2,6 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { createContext, useState, useEffect } from "react";
 import { dbRoleToMenu } from "../../utils/roleMapping";
+import { useMemo } from "react";
+
 import { 
   ChevronLeft, 
   Home, 
@@ -53,8 +55,11 @@ const Sidebar = ({ toggleSidebar, isMobile }) => {
   const location = useLocation();
   const role = user?.routeRole || "customer"; // Este será "admin" o "customer"
   
-  // Convertir el rol de la base de datos al formato de menú
-  const menuRole = user?.role ? dbRoleToMenu(user.role) : 'USER';
+  
+    const menuRole = useMemo(() => {
+    if (!user || !user.role) return 'GUEST';
+    return dbRoleToMenu(user.role); // "ADMIN" o "USER"
+  }, [user]);
 
   const menuOptions = {
     ADMIN: [
@@ -66,7 +71,6 @@ const Sidebar = ({ toggleSidebar, isMobile }) => {
     USER: [
       { name: "Inicio", path: "/customer", icon: "Home" },
       { name: "Vehículos", path: "/customer/vehicles", icon: "Car" },
-      { name: "Hacer Reserva", path: "/customer/reservation-page", icon: "Calendar" },
       { name: "Mis Reservas", path: "/customer/my-reservations", icon: "BookOpen" },
     ],
   };
@@ -78,11 +82,98 @@ const Sidebar = ({ toggleSidebar, isMobile }) => {
   };
 
   const isActivePath = (path) => {
-    if (path === `/${role}`) {
+    if (path === '/' || path === `/${role}`) {
       return location.pathname === path;
     }
     return location.pathname.startsWith(path);
   };
+  // Si no hay usuario logueado, mostrar sidebar básico
+if (!user || !user.isAuthenticated) {
+  return (
+    <aside className="h-full">
+      <nav className="h-full flex flex-col bg-black backdrop-blur-md border-r border-white/20 shadow-2xl min-w-64 relative">
+        {/* Header con logo y hamburger */}
+        <div className="relative px-6 pt-8 pb-6 flex justify-between items-center">
+          <div className="flex flex-col">
+            <img
+              src="/EliteDrive.svg"
+              alt="Logo"
+              className="h-12 w-auto invert"
+            />
+          </div>
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-xl border-none hover:bg-white/10 transition-all duration-300 backdrop-blur-sm border border-white/10"
+            title={isMobile ? "Cerrar sidebar" : "Colapsar sidebar"}
+          >
+            <ChevronLeft size={20} className="text-slate-300" />
+          </button>
+        </div>
+
+        {/* Navegación */}
+        <ul className="flex-1 px-4 py-6 space-y-2">
+          <li>
+            <Link
+              to="/"
+              onClick={handleLinkClick}
+              className={`
+      group flex items-center gap-4 px-4 py-3.5 rounded-xl
+      font-medium transition-all duration-300 relative overflow-hidden
+      ${isActivePath('/') 
+        ? 'bg-white/10 text-white shadow-lg transform scale-105'
+        : 'text-slate-300 hover:bg-black/5 hover:text-white hover:translate-x-1'
+      }
+    `}
+              >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+              <Home className= {`relative z-10 ${isActivePath('/') ? 'text-white' : 'text-slate-400 group-hover:text-white'}`}  size={18} />
+              <span className="text-sm relative z-10">Página Principal</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/customer/vehicles"
+              onClick={handleLinkClick}
+                className={`
+      group flex items-center gap-4 px-4 py-3.5 rounded-xl
+      font-medium transition-all duration-300 relative overflow-hidden
+      ${isActivePath('/customer/vehicles') 
+        ? 'bg-white/10 text-white shadow-lg transform scale-105'
+        : 'text-slate-300 hover:bg-black/5 hover:text-white hover:translate-x-1'
+      }
+    `}
+              >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+              <Car className={`relative z-10 ${isActivePath('/customer/vehicles') ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} size={18} />
+              <span className="text-sm relative z-10">Vehículos</span>
+            </Link>
+          </li>
+        </ul>
+
+        {/* Footer con botón login/registro */}
+        <div className="border-t border-white/20 p-6 text-center space-y-3">
+          <Link
+            to="/login"
+            className="group w-full flex items-center justify-center gap-2 px-4 py-3 text-sm text-white hover:text-gray-100 hover:bg-white/10 rounded-xl transition-all duration-300 border border-white/20 backdrop-blur-sm"
+          >
+            <User size={16} />
+            <span className="font-medium">Iniciar Sesión</span>
+          </Link>
+          <Link
+            to="/register"
+            className="group w-full flex items-center justify-center gap-2 px-4 py-3 text-sm text-white hover:text-gray-100 hover:bg-white/10 rounded-xl transition-all duration-300 border border-white/20 backdrop-blur-sm"
+          >
+            <Users size={16} />
+            <span className="font-medium">Registrarse</span>
+          </Link>
+        </div>
+      </nav>
+    </aside>
+  );
+}
+
+
+//Sidebar completo
 
   return (
     <aside className="h-full">

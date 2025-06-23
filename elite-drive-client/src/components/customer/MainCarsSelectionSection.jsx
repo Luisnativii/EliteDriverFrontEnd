@@ -7,10 +7,12 @@ const MainCarsSelectionSection = () => {
     const navigate = useNavigate();
     // Funciones para manejar los clicks de navegación
     const handleSedanClick = () => {
+        
        navigate('/customer/vehicle-type/sedan');
     };
 
     const handleSUVClick = () => {
+         
          navigate('/customer/vehicle-type/suv');
         
     };
@@ -40,6 +42,7 @@ const MainCarsSelectionSection = () => {
                             <h3 className="text-2xl font-semibold">Descubre sedán</h3>
 
                             <button onClick={handleSedanClick}
+                            
                                 className="w-8 h-8 border border-white rounded-full flex items-center justify-center hover:bg-white hover:text-neutral-600 transition-colors duration-300 cursor-pointer"
                             >
                                 <span className="text-lg">{'>'}</span>

@@ -1,4 +1,4 @@
-// Manejo de estado y efectos para componentes React
+// hooks/useReservations.js
 import { useState } from 'react';
 import ReservationService from '../services/reservationService';
 
@@ -11,33 +11,51 @@ export const useReservation = () => {
         setError(null);
 
         try {
-            // Validar datos antes de enviar
             const validation = ReservationService.validateReservation(reservationData);
-            
             if (!validation.isValid) {
                 throw new Error(validation.errors.join(', '));
             }
 
-            // Crear la reserva
             const result = await ReservationService.createReservation(reservationData);
-            
             if (!result.success) {
                 throw new Error(result.error);
             }
 
-            setIsLoading(false);
-            return {
-                success: true,
-                data: result.data
-            };
-
+            return { success: true, data: result.data };
         } catch (err) {
             setError(err.message);
+            return { success: false, error: err.message };
+        } finally {
             setIsLoading(false);
-            return {
-                success: false,
-                error: err.message
-            };
+        }
+    };
+
+    const cancelReservation = async (reservationId) => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            await ReservationService.deleteReservation(reservationId);
+            return { success: true };
+        } catch (err) {
+            setError(err.message);
+            return { success: false, error: err.message };
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const getReservationsByUser = async (userId) => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const result = await ReservationService.getReservationsByUser(userId);
+            if (!result.success) throw new Error(result.error);
+            return result.data;
+        } catch (err) {
+            setError(err.message);
+            return [];
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -49,17 +67,19 @@ export const useReservation = () => {
         const validation = ReservationService.validateReservation({
             startDate,
             endDate,
-            vehicleId: 'temp' // Solo para validación de fechas
+            vehicleId: 'temp'
         });
 
         return {
-            isValid: validation.errors.length <= 1, // Ignorar error de vehicleId
+            isValid: validation.errors.length <= 1,
             errors: validation.errors.filter(err => !err.includes('vehicleId'))
         };
     };
 
     return {
         createReservation,
+        cancelReservation,
+        getReservationsByUser,
         calculatePrice,
         validateDates,
         isLoading,

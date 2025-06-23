@@ -40,7 +40,7 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
   // Limpiar errores al montar el componente
   useEffect(() => {
     clearErrors();
-    
+
     // Debug: verificar el estado de edición
     console.log('🔧 VehicleForm - Estado de edición:');
     console.log('- isEditing prop:', isEditing);
@@ -99,11 +99,16 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
           vehicleType: formData.vehicleType,
           pricePerDay: parseFloat(formData.pricePerDay),
           kilometers: parseInt(formData.kilometers),
+          kmForMaintenance: parseInt(formData.kmForMaintenance),
           features: formData.featuresText
             ? formData.featuresText.split(',').map(f => f.trim()).filter(f => f !== '')
             : [],
-          image: formData.image
+          mainImageUrl: formData.mainImageUrl,
+          imageUrls: formData.imageUrlsText
+            ? formData.imageUrlsText.split(',').map(url => url.trim()).filter(url => url !== '')
+            : []
         };
+
 
         console.log('🔧 Datos de creación a enviar:', submitData);
         await createVehicle(submitData, onSuccess);
@@ -145,11 +150,10 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
             onChange={handleChange}
             disabled={editMode}
             readOnly={editMode}
-            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${
-              editMode
-                ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
-                : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.name ? 'border-red-500/50' : ''}`
-            }`}
+            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${editMode
+              ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
+              : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.name ? 'border-red-500/50' : ''}`
+              }`}
             placeholder="Ej: Toyota Corolla 2023"
           />
           {!editMode && allErrors.name && (
@@ -168,11 +172,10 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
             value={formData.vehicleType}
             onChange={handleChange}
             disabled={editMode}
-            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm focus:outline-none appearance-none transition-all duration-300 ${
-              editMode
-                ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
-                : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.vehicleType ? 'border-red-500/50' : ''}`
-            }`}
+            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm focus:outline-none appearance-none transition-all duration-300 ${editMode
+              ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
+              : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.vehicleType ? 'border-red-500/50' : ''}`
+              }`}
           >
             {vehicleTypes.map(type => (
               <option key={type.value} value={type.value} className="bg-gray-900 text-white">
@@ -201,11 +204,10 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
             onChange={handleChange}
             disabled={editMode}
             readOnly={editMode}
-            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${
-              editMode
-                ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
-                : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.brand ? 'border-red-500/50' : ''}`
-            }`}
+            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${editMode
+              ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
+              : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.brand ? 'border-red-500/50' : ''}`
+              }`}
             placeholder="Ej: Toyota"
           />
           {!editMode && allErrors.brand && (
@@ -226,11 +228,10 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
             onChange={handleChange}
             disabled={editMode}
             readOnly={editMode}
-            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${
-              editMode
-                ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
-                : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.model ? 'border-red-500/50' : ''}`
-            }`}
+            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${editMode
+              ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
+              : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.model ? 'border-red-500/50' : ''}`
+              }`}
             placeholder="Ej: Corolla"
           />
           {!editMode && allErrors.model && (
@@ -255,11 +256,10 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
             onChange={handleChange}
             disabled={editMode}
             readOnly={editMode}
-            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${
-              editMode
-                ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
-                : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.capacity ? 'border-red-500/50' : ''}`
-            }`}
+            className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${editMode
+              ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
+              : `bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${allErrors.capacity ? 'border-red-500/50' : ''}`
+              }`}
             placeholder="Ej: 5"
           />
           {!editMode && allErrors.capacity && (
@@ -279,9 +279,8 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
             name="kilometers"
             value={formData.kilometers}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
-              editMode ? 'ring-2 ring-green-500/50 border-green-500/50' : ''
-            } ${allErrors.kilometers ? 'border-red-500/50' : 'border-white/20'}`}
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${editMode ? 'ring-2 ring-green-500/50 border-green-500/50' : ''
+              } ${allErrors.kilometers ? 'border-red-500/50' : 'border-white/20'}`}
             placeholder="Ej: 50000"
           />
           {allErrors.kilometers && (
@@ -289,6 +288,22 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
           )}
         </div>
       </div>
+      {/* Kilómetros para mantenimiento */}
+      <div>
+        <label htmlFor="kmForMaintenance" className="block text-sm font-semibold text-white mb-2">
+          Kilómetros para Mantenimiento *
+        </label>
+        <input
+          type="text"
+          id="kmForMaintenance"
+          name="kmForMaintenance"
+          value={formData.kmForMaintenance}
+          onChange={handleChange}
+          className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15"
+          placeholder="Ej: 15000"
+        />
+      </div>
+
 
       {/* Precio */}
       <div>
@@ -303,9 +318,8 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
           name="pricePerDay"
           value={formData.pricePerDay}
           onChange={handleChange}
-          className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
-            editMode ? 'ring-2 ring-green-500/50 border-green-500/50' : ''
-          } ${allErrors.pricePerDay ? 'border-red-500/50' : 'border-white/20'}`}
+          className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${editMode ? 'ring-2 ring-green-500/50 border-green-500/50' : ''
+            } ${allErrors.pricePerDay ? 'border-red-500/50' : 'border-white/20'}`}
           placeholder="Ej: 45.00"
         />
         {allErrors.pricePerDay && (
@@ -325,9 +339,8 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
           value={formData.featuresText || (Array.isArray(formData.features) ? formData.features.join(', ') : '')}
           onChange={handleFeaturesChange}
           rows={3}
-          className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${
-            editMode ? 'ring-2 ring-green-500/50 border-green-500/50' : ''
-          }`}
+          className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${editMode ? 'ring-2 ring-green-500/50 border-green-500/50' : ''
+            }`}
           placeholder="Ej: Aire acondicionado, GPS, Bluetooth, Cámara reversa"
         />
         <p className="mt-2 text-xs text-white/60">
@@ -347,29 +360,41 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
           </div>
         )}
       </div>
-
-      {/* URL de imagen */}
+      {/* Imagen principal */}
       <div>
-        <label htmlFor="image" className="block text-sm font-semibold text-white mb-2">
-          URL de Imagen
-          {editMode && <span className="text-yellow-400 text-xs ml-2">(Solo lectura)</span>}
+        <label htmlFor="mainImageUrl" className="block text-sm font-semibold text-white mb-2">
+          Imagen Principal (mainImageUrl)
         </label>
         <input
           type="url"
-          id="image"
-          name="image"
-          value={formData.image || ''}
+          id="mainImageUrl"
+          name="mainImageUrl"
+          value={formData.mainImageUrl}
           onChange={handleChange}
-          disabled={editMode}
-          readOnly={editMode}
-          className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${
-            editMode
-              ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
-              : 'bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent'
-          }`}
-          placeholder="https://ejemplo.com/imagen-vehiculo.jpg"
+          className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15"
+          placeholder="https://mi-bucket.s3.amazonaws.com/hilux-principal.jpg"
         />
       </div>
+
+      {/* URLs adicionales de imagen */}
+      <div>
+        <label htmlFor="imageUrlsText" className="block text-sm font-semibold text-white mb-2">
+          Imágenes Adicionales (separadas por coma)
+        </label>
+        <textarea
+          id="imageUrlsText"
+          name="imageUrlsText"
+          value={formData.imageUrlsText}
+          onChange={handleChange}
+          rows={3}
+          className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15"
+          placeholder="https://img1.jpg, https://img2.jpg"
+        />
+        <p className="mt-2 text-xs text-white/60">
+          Separa cada URL por coma.
+        </p>
+      </div>
+
 
       {/* Botones de acción */}
       <div className="flex justify-end space-x-4 pt-6 border-t border-white/20">

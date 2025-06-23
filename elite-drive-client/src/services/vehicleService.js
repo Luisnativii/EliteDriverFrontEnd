@@ -82,8 +82,10 @@ const transformVehicleData = (apiVehicle) => {
     price: parseFloat(apiVehicle.pricePerDay),
     pricePerDay: parseFloat(apiVehicle.pricePerDay),
     kilometers: apiVehicle.kilometers,
+    kmForMaintenance: apiVehicle.kmForMaintenance || null, // <- agregado
     features: apiVehicle.features || [],
-    image: apiVehicle.image || null
+    image: apiVehicle.mainImageUrl || null,
+     imageUrls: apiVehicle.imageUrls || []   // <- arreglo de imágenes
   };
 };
 
@@ -115,19 +117,25 @@ const transformVehicleForAPI = (vehicleData) => {
     console.error('❌ Datos incompletos:', { name, brand, model, capacity, pricePerDay, kilometers, vehicleType });
     throw new Error('Todos los campos son requeridos y deben tener valores válidos');
   }
-  
+
   const apiData = {
-    name,
-    brand,
-    model,
-    capacity,
-    pricePerDay,
-    kilometers,
-    features: processedFeatures,
-    vehicleType: {
-      type: vehicleType
-    }
-  };
+  name,
+  brand,
+  model,
+  capacity,
+  pricePerDay,
+  kilometers,
+  kmForMaintenance: parseInt(vehicleData.kmForMaintenance),
+  features: processedFeatures,
+  vehicleType: {
+    type: vehicleType
+  },
+  mainImageUrl: vehicleData.mainImageUrl,
+  imageUrls: Array.isArray(vehicleData.imageUrls)
+    ? vehicleData.imageUrls
+    : (vehicleData.imageUrlsText || '').split(',').map(x => x.trim()).filter(x => x !== '')
+};
+
   
   console.log('📤 Datos transformados para API:', apiData);
   return apiData;
