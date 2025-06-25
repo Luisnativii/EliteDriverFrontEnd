@@ -1,5 +1,3 @@
-// Add this hook to your useVehicles.js file
-
 // Hook para obtener tipos de vehículos
 export const useCarTypes = () => {
   const [carTypes, setCarTypes] = useState([]);

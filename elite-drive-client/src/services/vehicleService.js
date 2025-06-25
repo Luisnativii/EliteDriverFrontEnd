@@ -20,17 +20,11 @@ vehicleApi.interceptors.request.use(
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('✅ Token agregado al header de vehículos');
-    } else {
-      console.warn('⚠️ No se encontró token de autenticación para vehículos');
     }
-    
-    console.log('🚀 Realizando petición a:', config.url);
-    console.log('📤 Datos enviados:', config.data);
+
     return config;
   },
   (error) => {
-    console.error('❌ Error en interceptor request de vehículos:', error);
     return Promise.reject(error);
   }
 );
@@ -38,39 +32,22 @@ vehicleApi.interceptors.request.use(
 // Interceptor para responses - manejar errores globalmente
 vehicleApi.interceptors.response.use(
   (response) => {
-    console.log('✅ Respuesta exitosa de vehículos:', response.status);
-    console.log('📥 Datos recibidos:', response.data);
     return response;
   },
   (error) => {
-    console.error('❌ Error en respuesta de vehículos:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      url: error.config?.url,
-      requestData: error.config?.data
-    });
-    
     if (error.response?.status === 401) {
-      console.warn('🔒 Token expirado, limpiando datos de autenticación');
       sessionStorage.removeItem('authToken');
       localStorage.removeItem('authToken');
       sessionStorage.removeItem('userData');
       localStorage.removeItem('userData');
     }
     
-    if (error.response?.status === 403) {
-      console.error('🚫 Acceso prohibido - Verificar permisos de usuario');
-    }
-    
     return Promise.reject(error);
   }
 );
 
-// Función CORREGIDA para transformar datos de la API al formato del frontend
+// Función para transformar datos de la API al formato del frontend
 const transformVehicleData = (apiVehicle) => {
-  console.log('🔄 Transformando vehículo desde API:', apiVehicle);
-  
   return {
     id: apiVehicle.id,
     name: apiVehicle.name,
@@ -82,18 +59,16 @@ const transformVehicleData = (apiVehicle) => {
     price: parseFloat(apiVehicle.pricePerDay),
     pricePerDay: parseFloat(apiVehicle.pricePerDay),
     kilometers: apiVehicle.kilometers,
-    kmForMaintenance: apiVehicle.kmForMaintenance || null, // <- agregado
+    kmForMaintenance: apiVehicle.kmForMaintenance || null,
     features: apiVehicle.features || [],
     image: apiVehicle.mainImageUrl || null,
-     imageUrls: apiVehicle.imageUrls || [],
-     status: apiVehicle.status || 'available'
+    imageUrls: apiVehicle.imageUrls || [],
+    status: apiVehicle.status || 'maintenanceCompleted'
   };
 };
 
-// Función CORREGIDA para transformar datos del frontend al formato de la API
+// Función para transformar datos del frontend al formato de la API
 const transformVehicleForAPI = (vehicleData) => {
-  console.log('🔄 Transformando vehículo para API:', vehicleData);
-  
   // Procesar features de manera más robusta
   let processedFeatures = [];
   if (vehicleData.features) {
@@ -115,36 +90,32 @@ const transformVehicleForAPI = (vehicleData) => {
   
   // Validar que todos los campos requeridos estén presentes
   if (!name || !brand || !model || isNaN(capacity) || isNaN(pricePerDay) || isNaN(kilometers) || !vehicleType) {
-    console.error('❌ Datos incompletos:', { name, brand, model, capacity, pricePerDay, kilometers, vehicleType });
     throw new Error('Todos los campos son requeridos y deben tener valores válidos');
   }
 
   const apiData = {
-  name,
-  brand,
-  model,
-  capacity,
-  pricePerDay,
-  kilometers,
-  kmForMaintenance: parseInt(vehicleData.kmForMaintenance),
-  features: processedFeatures,
-  vehicleType: {
-    type: vehicleType
-  },
-  mainImageUrl: vehicleData.mainImageUrl,
-  imageUrls: Array.isArray(vehicleData.imageUrls)
-    ? vehicleData.imageUrls
-    : (vehicleData.imageUrlsText || '').split(',').map(x => x.trim()).filter(x => x !== '')
-};
-
+    name,
+    brand,
+    model,
+    capacity,
+    pricePerDay,
+    kilometers,
+    kmForMaintenance: parseInt(vehicleData.kmForMaintenance),
+    features: processedFeatures,
+    vehicleType: {
+      type: vehicleType
+    },
+    mainImageUrl: vehicleData.mainImageUrl,
+    imageUrls: Array.isArray(vehicleData.imageUrls)
+      ? vehicleData.imageUrls
+      : (vehicleData.imageUrlsText || '').split(',').map(x => x.trim()).filter(x => x !== ''),
+    status: 'maintenanceCompleted'  // Asignar estado por defecto
+  };
   
-  console.log('📤 Datos transformados para API:', apiData);
   return apiData;
 };
 
 const transformVehicleForUpdate = (vehicleData) => {
-  console.log('🔄 Transformando vehículo para actualización (campos permitidos):', vehicleData);
-  
   // Procesar features de manera más robusta
   let processedFeatures = [];
   if (vehicleData.features) {
@@ -170,7 +141,6 @@ const transformVehicleForUpdate = (vehicleData) => {
   const kilometers = parseInt(vehicleData.kilometers);
   
   if (isNaN(pricePerDay) || isNaN(kilometers)) {
-    console.error('❌ Datos incompletos para actualización:', { pricePerDay, kilometers });
     throw new Error('Precio por día y kilómetros son requeridos para la actualización');
   }
   
@@ -182,32 +152,22 @@ const transformVehicleForUpdate = (vehicleData) => {
     imageUrls: processedImageUrls
   };
   
-  console.log('📤 Datos transformados para actualización:', updateData);
   return updateData;
 };
 
 // Servicios principales
 export const getAllVehicles = async () => {
   try {
-    console.log('🚗 Obteniendo todos los vehículos...');
-    
     const response = await vehicleApi.get(API_ENDPOINTS.VEHICLES.GET_ALL);
-    console.log('📋 Respuesta completa del servidor:', response);
-    console.log('📋 Datos de vehículos recibidos:', response.data);
     
     if (!Array.isArray(response.data)) {
-      console.error('❌ La respuesta no es un array:', typeof response.data, response.data);
       throw new Error('La respuesta no es un array válido');
     }
     
     const transformedVehicles = response.data.map(transformVehicleData);
-    console.log('✨ Vehículos transformados:', transformedVehicles);
-    
     return transformedVehicles;
     
   } catch (error) {
-    console.error('💥 Error obteniendo vehículos:', error);
-    
     // Crear mensaje de error específico
     let errorMessage = 'Error al cargar los vehículos';
     
@@ -217,7 +177,6 @@ export const getAllVehicles = async () => {
       switch (status) {
         case 400:
           errorMessage = data?.message || 'Petición incorrecta. Verifica la configuración de la API.';
-          console.error('📋 Detalles del error 400:', data);
           break;
         case 401:
           errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
@@ -233,14 +192,11 @@ export const getAllVehicles = async () => {
           break;
         default:
           errorMessage = data?.message || `Error del servidor (${status}).`;
-          console.error('📋 Error no manejado:', { status, data });
       }
     } else if (error.request) {
       errorMessage = 'No se pudo conectar con el servidor. Verifica que esté ejecutándose.';
-      console.error('📋 Error de conexión:', error.request);
     } else {
       errorMessage = error.message || 'Error inesperado';
-      console.error('📋 Error desconocido:', error);
     }
     
     throw new Error(errorMessage);
@@ -249,8 +205,6 @@ export const getAllVehicles = async () => {
 
 export const getVehicleById = async (id) => {
   try {
-    console.log('🔍 Buscando vehículo con ID:', id);
-    
     const endpoint = API_ENDPOINTS.VEHICLES.GET_BY_ID.replace(':id', id);
     
     try {
@@ -258,7 +212,6 @@ export const getVehicleById = async (id) => {
       return transformVehicleData(response.data);
     } catch (error) {
       if (error.response?.status === 404) {
-        console.log('🔄 Endpoint directo no disponible, buscando en lista completa...');
         const allVehicles = await getAllVehicles();
         const foundVehicle = allVehicles.find(v => v.id === id);
         
@@ -272,8 +225,6 @@ export const getVehicleById = async (id) => {
     }
     
   } catch (error) {
-    console.error('💥 Error obteniendo vehículo por ID:', error);
-    
     const errorMessage = error.response?.data?.message || 
                         error.message || 
                         'Error al cargar el vehículo';
@@ -283,13 +234,9 @@ export const getVehicleById = async (id) => {
 
 export const createVehicle = async (vehicleData) => {
   try {
-    console.log('➕ Creando vehículo:', vehicleData);
-    
     const apiData = transformVehicleForAPI(vehicleData);
-    console.log('📤 Enviando datos a API:', apiData);
     
     const response = await vehicleApi.post(API_ENDPOINTS.VEHICLES.CREATE, apiData);
-    console.log('✅ Vehículo creado exitosamente:', response.data);
     
     // Si el backend devuelve datos, transformarlos
     if (response.data) {
@@ -300,8 +247,6 @@ export const createVehicle = async (vehicleData) => {
     return { ...vehicleData, id: 'created-successfully' };
     
   } catch (error) {
-    console.error('💥 Error creando vehículo:', error);
-    
     let errorMessage = 'Error al crear el vehículo';
     
     if (error.response) {
@@ -310,7 +255,6 @@ export const createVehicle = async (vehicleData) => {
       switch (status) {
         case 400:
           errorMessage = data?.message || 'Datos inválidos. Verifica la información ingresada.';
-          console.error('📋 Detalles del error 400:', data);
           break;
         case 401:
           errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
@@ -342,21 +286,16 @@ export const createVehicle = async (vehicleData) => {
 
 export const updateVehicle = async (id, updateData) => {
   try {
-    console.log('✏️ Actualizando vehículo:', id, updateData);
-    
     const endpoint = API_ENDPOINTS.VEHICLES.UPDATE.replace(':id', id);
     
     // Usar la función específica para updates que solo envía campos permitidos
     const apiData = transformVehicleForUpdate(updateData);
     
     const response = await vehicleApi.put(endpoint, apiData);
-    console.log('✅ Vehículo actualizado exitosamente');
     
     return response.data ? transformVehicleData(response.data) : { success: true };
     
   } catch (error) {
-    console.error('💥 Error actualizando vehículo:', error);
-    
     let errorMessage = 'Error al actualizar el vehículo';
     
     if (error.response) {
@@ -393,17 +332,12 @@ export const updateVehicle = async (id, updateData) => {
 
 export const deleteVehicle = async (id) => {
   try {
-    console.log('🗑️ Eliminando vehículo:', id);
-    
     const endpoint = API_ENDPOINTS.VEHICLES.DELETE.replace(':id', id);
     await vehicleApi.delete(endpoint);
-    console.log('✅ Vehículo eliminado exitosamente');
     
     return { success: true };
     
   } catch (error) {
-    console.error('💥 Error eliminando vehículo:', error);
-    
     let errorMessage = 'Error al eliminar el vehículo';
     
     if (error.response) {
@@ -455,18 +389,27 @@ export const hasAdminRole = () => {
   return user && (user.role === 'ADMIN' || user.roles?.includes('ADMIN'));
 };
 
-// Función de debug para testing
-export const testVehicleConnection = async () => {
-  try {
-    console.log('🧪 Probando conexión con servicio de vehículos...');
-    const vehicles = await getAllVehicles();
-    console.log('✅ Conexión exitosa con servicio de vehículos');
-    return { success: true, count: vehicles.length };
-  } catch (error) {
-    console.error('❌ Error de conexión con servicio de vehículos:', error);
-    return { 
-      success: false, 
-      error: error.message 
-    };
-  }
+export const getStatusLabel = (status) => {
+  const statusLabels = {
+    'reserved': 'Reservado',
+    'underMaintenance': 'En Mantenimiento',
+    'maintenanceRequired': 'Requiere Mantenimiento',
+    'maintenanceCompleted': 'Disponible',
+    'outOfService': 'Fuera de Servicio'
+  };
+  
+  return statusLabels[status] || 'Estado Desconocido';
+};
+
+// Agregar función para obtener el color del estado
+export const getStatusColor = (status) => {
+  const statusColors = {
+    'reserved': 'text-green-400 bg-green-500/20',
+    'underMaintenance': 'text-orange-400 bg-orange-500/20',
+    'maintenanceRequired': 'text-yellow-400 bg-yellow-500/20',
+    'maintenanceCompleted': 'text-emerald-400 bg-emerald-500/20',
+    'outOfService': 'text-red-400 bg-red-500/20'
+  };
+  
+  return statusColors[status] || 'text-gray-400 bg-gray-500/20';
 };

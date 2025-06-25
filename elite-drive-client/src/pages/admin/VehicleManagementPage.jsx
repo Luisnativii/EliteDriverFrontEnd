@@ -1,19 +1,63 @@
-import React, { useState } from 'react';
-import { useVehicles, useAuthCheck } from '../../hooks/useVehicles';
-import VehicleForm from '../../components/forms/VehicleForm';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useVehicles, useAuthCheck, useVehicleOperations } from '../../hooks/useVehicles';
+import CreateVehicleForm from '../../components/forms/CreateVehicleForm';
+import EditVehicleForm from '../../components/forms/EditVehicleForm';
 import VehicleCard from '../../components/vehicle/VehicleCard';
 import VehicleFilterForm from '../../components/forms/VehicleFilterForm';
 import LoadingSpinner from '../../components/layout/LoadingSpinner';
+import ReservationService from '@/services/reservationService';
 import { Plus, Search, AlertCircle, Wrench, Car, Calendar } from 'lucide-react';
 
 const VehicleManagementPage = () => {
   const { vehicles, loading, error, refetch } = useVehicles();
   const { hasAdminRole, isAuthenticated, loading: authLoading } = useAuthCheck();
+  const { createVehicle, updateVehicle, isLoading: operationLoading } = useVehicleOperations();
+  
+  // Estados del componente
   const [showForm, setShowForm] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  
+  const [statusFilter, setStatusFilter] = useState('all'); // ⚠️ Esta variable faltaba
+  const [reservations, setReservations] = useState([]);
+  const [reservationsLoading, setReservationsLoading] = useState(false);
+
+  // Función para obtener reservaciones del día actual
+  const fetchTodayReservations = useCallback(async () => {
+    try {
+      setReservationsLoading(true);
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+      const reservationsData = await ReservationService.getReservationsByDateRange(todayStr, todayStr);
+      setReservations(reservationsData);
+    } catch (error) {
+      console.error('Error al cargar reservaciones:', error);
+      setReservations([]);
+    } finally {
+      setReservationsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (vehicles.length > 0) {
+      fetchTodayReservations();
+    }
+  }, [vehicles, fetchTodayReservations]);
+
+  // Función para obtener vehículos reservados hoy
+  const getReservedVehicleIds = () => {
+    return reservations.map(reservation => reservation.vehicle?.id).filter(Boolean);
+  };
+
+  // Función para determinar el estado efectivo de un vehículo
+  const getEffectiveVehicleStatus = (vehicle) => {
+    const reservedIds = getReservedVehicleIds();
+    if (reservedIds.includes(vehicle.id)) {
+      return 'reserved';
+    }
+    return vehicle.status || 'maintenanceCompleted';
+  };
 
   // Filtrar vehículos basado en búsqueda y filtro
   const filteredVehicles = vehicles.filter(vehicle => {
@@ -24,11 +68,20 @@ const VehicleManagementPage = () => {
     const matchesFilter = filterType === 'all' ||
       vehicle.type?.toLowerCase() === filterType.toLowerCase();
 
-    return matchesSearch && matchesFilter;
+    const effectiveStatus = getEffectiveVehicleStatus(vehicle);
+    const matchesStatus = statusFilter === 'all' || effectiveStatus === statusFilter;
+
+    return matchesSearch && matchesFilter && matchesStatus;
   });
 
   // Obtener tipos únicos para el filtro
   const uniqueTypes = [...new Set(vehicles.map(v => v.type).filter(Boolean))];
+
+  const handleFormSuccess = () => {
+    setShowForm(false);
+    setEditingVehicle(null);
+    refetch();
+  };
 
   const handleAddVehicle = () => {
     if (!hasAdminRole) {
@@ -40,28 +93,77 @@ const VehicleManagementPage = () => {
   };
 
   const handleEditVehicle = (vehicle, isEditing = true) => {
-  if (!hasAdminRole) {
-    alert('Solo los administradores pueden editar vehículos');
-    return;
-  }
-  console.log('🔧 Editando vehículo:', vehicle.name, 'isEditing:', isEditing);
-  setEditingVehicle(vehicle);
-  setShowForm(true);
-};
+    if (!hasAdminRole) {
+      alert('Solo los administradores pueden editar vehículos');
+      return;
+    }
+    console.log('🔧 Editando vehículo:', vehicle.name, 'isEditing:', isEditing);
+    setEditingVehicle(vehicle);
+    setShowForm(true);
+  };
 
   const handleCloseForm = () => {
     setShowForm(false);
     setEditingVehicle(null);
   };
 
-  const handleFormSuccess = () => {
-    setShowForm(false);
-    setEditingVehicle(null);
-    refetch();
+  const handleCreateSubmit = async (vehicleData) => {
+    try {
+      await createVehicle(vehicleData, () => {
+        handleFormSuccess();
+      });
+    } catch (error) {
+      console.error('Error al crear vehículo:', error);
+      // El error ya se maneja en el hook
+    }
+  };
+
+  const handleUpdateSubmit = async (vehicleId, updateData) => {
+    try {
+      await updateVehicle(vehicleId, updateData, () => {
+        handleFormSuccess();
+      });
+    } catch (error) {
+      console.error('Error al actualizar vehículo:', error);
+      // El error ya se maneja en el hook
+    }
   };
 
   const handleRefresh = () => {
     refetch();
+  };
+
+  const handleStatusFilterClick = (status) => {
+    setStatusFilter(status);
+    // Limpiar otros filtros para mostrar solo por estado
+    setSearchTerm('');
+    setFilterType('all');
+  };
+
+  // Funciones para calcular estadísticas
+  const getVehiclesByStatus = (status) => {
+    if (status === 'all') return vehicles;
+
+    return vehicles.filter(vehicle => {
+      const effectiveStatus = getEffectiveVehicleStatus(vehicle);
+      return effectiveStatus === status;
+    });
+  };
+
+  const getStatusCounts = () => {
+    const reservedIds = getReservedVehicleIds();
+
+    return {
+      total: vehicles.length,
+      reserved: reservedIds.length,
+      underMaintenance: vehicles.filter(v => v.status === 'underMaintenance').length,
+      maintenanceRequired: vehicles.filter(v => v.status === 'maintenanceRequired').length,
+      outOfService: vehicles.filter(v => v.status === 'outOfService').length,
+      maintenanceCompleted: vehicles.filter(v => {
+        const effectiveStatus = getEffectiveVehicleStatus(v);
+        return effectiveStatus === 'maintenanceCompleted';
+      }).length
+    };
   };
 
   // Mostrar loading mientras se cargan auth y vehículos
@@ -100,6 +202,8 @@ const VehicleManagementPage = () => {
     );
   }
 
+  const statusCounts = getStatusCounts();
+
   return (
     <div className="min-h-screen bg-neutral-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -136,73 +240,151 @@ const VehicleManagementPage = () => {
         )}
 
         {/* Stats con glassmorphism */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-6 hover:bg-white/15 transition-all duration-300 group">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+          {/* Total vehículos */}
+          <div
+            onClick={() => handleStatusFilterClick('all')}
+            className={`bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-4 hover:bg-white/15 transition-all duration-300 group cursor-pointer transform hover:scale-105 ${statusFilter === 'all' ? 'ring-2 ring-blue-400' : ''}`}
+          >
             <div className="flex items-center">
-              <div className="p-3 bg-white/10 backdrop-blur-md rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Car className="w-6 h-6 text-white" />
+              <div className="p-2 bg-blue-500/20 backdrop-blur-md rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <Car className="w-5 h-5 text-blue-400" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-white/70">Total vehículos</p>
-                <p className="text-xl font-bold text-white">{vehicles.length}</p>
+              <div className="ml-3">
+                <p className="text-xs font-medium text-white/70">Total</p>
+                <p className="text-lg font-bold text-white">{statusCounts.total}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-6 hover:bg-white/15 transition-all duration-300 group">
+          {/* Mantenimiento completado */}
+          <div
+            onClick={() => handleStatusFilterClick('maintenanceCompleted')}
+            className={`bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-4 hover:bg-white/15 transition-all duration-300 group cursor-pointer transform hover:scale-105 ${statusFilter === 'maintenanceCompleted' ? 'ring-2 ring-emerald-400' : ''}`}
+          >
             <div className="flex items-center">
-              <div className="p-3 bg-white/10 backdrop-blur-md rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Calendar className="w-6 h-6 text-white" />
+              <div className="p-2 bg-emerald-500/20 backdrop-blur-md rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <Car className="w-5 h-5 text-emerald-400" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-white/70">En renta</p>
-                <p className="text-xl font-bold text-white">{uniqueTypes.length}</p>
+              <div className="ml-3">
+                <p className="text-xs font-medium text-white/70">Disponible</p>
+                <p className="text-lg font-bold text-white">{statusCounts.maintenanceCompleted}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-6 hover:bg-white/15 transition-all duration-300 group">
+          {/* Reservados hoy */}
+          <div
+            onClick={() => handleStatusFilterClick('reserved')}
+            className={`bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-4 hover:bg-white/15 transition-all duration-300 group cursor-pointer transform hover:scale-105 ${statusFilter === 'reserved' ? 'ring-2 ring-green-400' : ''}`}
+          >
             <div className="flex items-center">
-              <div className="p-3 bg-white/10 backdrop-blur-md rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Wrench className="w-6 h-6 text-white" />
+              <div className="p-2 bg-green-500/20 backdrop-blur-md rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <Calendar className="w-5 h-5 text-green-400" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-white/70">En mantenimiento</p>
-                <p className="text-xl font-bold text-white">
-                  ${vehicles.length > 0 ?
-                    (vehicles.reduce((sum, v) => sum + v.price, 0) / vehicles.length).toFixed(0) :
-                    '0'
-                  }
-                </p>
+              <div className="ml-3">
+                <p className="text-xs font-medium text-white/70">Reservados</p>
+                <p className="text-lg font-bold text-white">{statusCounts.reserved}</p>
               </div>
             </div>
           </div>
+
+          {/* Fuera de servicio */}
+          <div
+            onClick={() => handleStatusFilterClick('outOfService')}
+            className={`bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-4 hover:bg-white/15 transition-all duration-300 group cursor-pointer transform hover:scale-105 ${statusFilter === 'outOfService' ? 'ring-2 ring-red-400' : ''}`}
+          >
+            <div className="flex items-center">
+              <div className="p-2 bg-red-500/20 backdrop-blur-md rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <AlertCircle className="w-5 h-5 text-red-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-xs font-medium text-white/70">Fuera de servicio</p>
+                <p className="text-lg font-bold text-white">{statusCounts.outOfService}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Requiere mantenimiento */}
+          <div
+            onClick={() => handleStatusFilterClick('maintenanceRequired')}
+            className={`bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-4 hover:bg-white/15 transition-all duration-300 group cursor-pointer transform hover:scale-105 ${statusFilter === 'maintenanceRequired' ? 'ring-2 ring-yellow-400' : ''}`}
+          >
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-500/20 backdrop-blur-md rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <AlertCircle className="w-5 h-5 text-yellow-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-xs font-medium text-white/70">Revisión</p>
+                <p className="text-lg font-bold text-white">{statusCounts.maintenanceRequired}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* En mantenimiento */}
+          <div
+            onClick={() => handleStatusFilterClick('underMaintenance')}
+            className={`bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-4 hover:bg-white/15 transition-all duration-300 group cursor-pointer transform hover:scale-105 ${statusFilter === 'underMaintenance' ? 'ring-2 ring-orange-400' : ''}`}
+          >
+            <div className="flex items-center">
+              <div className="p-2 bg-orange-500/20 backdrop-blur-md rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <Wrench className="w-5 h-5 text-orange-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-xs font-medium text-white/70">Mantenimiento</p>
+                <p className="text-lg font-bold text-white">{statusCounts.underMaintenance}</p>
+              </div>
+            </div>
+          </div>
+          
         </div>
 
-        {/* Lista de vehículos */}
+        {statusFilter !== 'all' && (
+          <div className="mb-6 flex items-center justify-between bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
+            <div className="flex items-center">
+              <span className="text-white/70 text-sm mr-2">Filtrando por:</span>
+              <span className="bg-white/20 text-white px-3 py-1 rounded-lg text-sm font-medium">
+                {statusFilter === 'reserved' && 'Reservados Hoy'}
+                {statusFilter === 'underMaintenance' && 'En Mantenimiento'}
+                {statusFilter === 'maintenanceRequired' && 'Requiere Mantenimiento'}
+                {statusFilter === 'outOfService' && 'Fuera de Servicio'}
+                {statusFilter === 'maintenanceCompleted' && 'Disponibles'}
+              </span>
+            </div>
+            <button
+              onClick={() => handleStatusFilterClick('all')}
+              className="text-white/60 hover:text-white transition-colors duration-300 text-sm bg-white/10 px-3 py-1 rounded-lg hover:bg-white/20"
+            >
+              Limpiar filtro
+            </button>
+          </div>
+        )}
+
         {filteredVehicles.length === 0 ? (
           <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-12 text-center">
             <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <Search className="w-10 h-10 text-white/60" />
             </div>
             <h3 className="text-xl font-bold text-white mb-3">
-              {searchTerm || filterType !== 'all' ?
+              {searchTerm || filterType !== 'all' || statusFilter !== 'all' ?
                 'No se encontraron vehículos' :
                 'No hay vehículos registrados'
               }
             </h3>
             <p className="text-white/70 text-sm mb-8">
-              {searchTerm || filterType !== 'all' ?
-                'Intenta ajustar tus filtros de búsqueda' :
-                'Comienza agregando tu primer vehículo a la flota premium'
+              {statusFilter !== 'all' ?
+                `No hay vehículos con estado "${statusFilter}"` :
+                searchTerm || filterType !== 'all' ?
+                  'Intenta ajustar tus filtros de búsqueda' :
+                  'Comienza agregando tu primer vehículo a la flota premium'
               }
             </p>
-            {(!searchTerm && filterType === 'all' && hasAdminRole) && (
+            {(!searchTerm && filterType === 'all' && statusFilter === 'all' && hasAdminRole) && (
               <button
                 onClick={handleAddVehicle}
                 className="inline-flex text-sm items-center px-8 py-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-xl"
               >
-                <Plus className="w-5 h-5 mr-3 " />
+                <Plus className="w-5 h-5 mr-3" />
                 Agregar Primer Vehículo
               </button>
             )}
@@ -221,7 +403,7 @@ const VehicleManagementPage = () => {
           </div>
         )}
 
-        {/* Modal del formulario con glassmorphism - usando el VehicleForm original */}
+        {/* Modal del formulario */}
         {showForm && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 max-w-2xl w-full max-h-[90vh] overflow-hidden">
@@ -242,12 +424,20 @@ const VehicleManagementPage = () => {
                 </div>
               </div>
               <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
-                <VehicleForm
-                  vehicle={editingVehicle}
-                  onSuccess={handleFormSuccess}
-                  onCancel={handleCloseForm}
-                  isEditing={isEditingMode}  // ← Prop explícito agregado
-                />
+                {isEditingMode ? (
+                  <EditVehicleForm
+                    vehicle={editingVehicle}
+                    onSubmit={handleUpdateSubmit}
+                    onCancel={handleCloseForm}
+                    submitLoading={operationLoading}
+                  />
+                ) : (
+                  <CreateVehicleForm
+                    onSubmit={handleCreateSubmit}
+                    onCancel={handleCloseForm}
+                    submitLoading={operationLoading}
+                  />
+                )}
               </div>
             </div>
           </div>
