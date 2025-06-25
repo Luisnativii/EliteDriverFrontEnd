@@ -1,170 +1,44 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { useVehicles, useAuthCheck, useVehicleOperations } from '../../hooks/useVehicles';
+import React from 'react';
+import { useVehicleManagement } from '../../hooks/useVehicleManagement';
 import CreateVehicleForm from '../../components/forms/CreateVehicleForm';
 import EditVehicleForm from '../../components/forms/EditVehicleForm';
 import VehicleCard from '../../components/vehicle/VehicleCard';
 import VehicleFilterForm from '../../components/forms/VehicleFilterForm';
 import LoadingSpinner from '../../components/layout/LoadingSpinner';
-import ReservationService from '@/services/reservationService';
 import { Plus, Search, AlertCircle, Wrench, Car, Calendar } from 'lucide-react';
 
 const VehicleManagementPage = () => {
-  const { vehicles, loading, error, refetch } = useVehicles();
-  const { hasAdminRole, isAuthenticated, loading: authLoading } = useAuthCheck();
-  const { createVehicle, updateVehicle, isLoading: operationLoading } = useVehicleOperations();
-  
-  // Estados del componente
-  const [showForm, setShowForm] = useState(false);
-  const [editingVehicle, setEditingVehicle] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all'); // ⚠️ Esta variable faltaba
-  const [reservations, setReservations] = useState([]);
-  const [reservationsLoading, setReservationsLoading] = useState(false);
-
-  // Función para obtener reservaciones del día actual
-  const fetchTodayReservations = useCallback(async () => {
-    try {
-      setReservationsLoading(true);
-      const today = new Date();
-      const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
-
-      const reservationsData = await ReservationService.getReservationsByDateRange(todayStr, todayStr);
-      setReservations(reservationsData);
-    } catch (error) {
-      console.error('Error al cargar reservaciones:', error);
-      setReservations([]);
-    } finally {
-      setReservationsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (vehicles.length > 0) {
-      fetchTodayReservations();
-    }
-  }, [vehicles, fetchTodayReservations]);
-
-  // Función para obtener vehículos reservados hoy
-  const getReservedVehicleIds = () => {
-    return reservations.map(reservation => reservation.vehicle?.id).filter(Boolean);
-  };
-
-  // Función para determinar el estado efectivo de un vehículo
-  const getEffectiveVehicleStatus = (vehicle) => {
-    const reservedIds = getReservedVehicleIds();
-    if (reservedIds.includes(vehicle.id)) {
-      return 'reserved';
-    }
-    return vehicle.status || 'maintenanceCompleted';
-  };
-
-  // Filtrar vehículos basado en búsqueda y filtro
-  const filteredVehicles = vehicles.filter(vehicle => {
-    const matchesSearch = vehicle.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.model.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesFilter = filterType === 'all' ||
-      vehicle.type?.toLowerCase() === filterType.toLowerCase();
-
-    const effectiveStatus = getEffectiveVehicleStatus(vehicle);
-    const matchesStatus = statusFilter === 'all' || effectiveStatus === statusFilter;
-
-    return matchesSearch && matchesFilter && matchesStatus;
-  });
-
-  // Obtener tipos únicos para el filtro
-  const uniqueTypes = [...new Set(vehicles.map(v => v.type).filter(Boolean))];
-
-  const handleFormSuccess = () => {
-    setShowForm(false);
-    setEditingVehicle(null);
-    refetch();
-  };
-
-  const handleAddVehicle = () => {
-    if (!hasAdminRole) {
-      alert('Solo los administradores pueden agregar vehículos');
-      return;
-    }
-    setEditingVehicle(null);
-    setShowForm(true);
-  };
-
-  const handleEditVehicle = (vehicle, isEditing = true) => {
-    if (!hasAdminRole) {
-      alert('Solo los administradores pueden editar vehículos');
-      return;
-    }
-    console.log('🔧 Editando vehículo:', vehicle.name, 'isEditing:', isEditing);
-    setEditingVehicle(vehicle);
-    setShowForm(true);
-  };
-
-  const handleCloseForm = () => {
-    setShowForm(false);
-    setEditingVehicle(null);
-  };
-
-  const handleCreateSubmit = async (vehicleData) => {
-    try {
-      await createVehicle(vehicleData, () => {
-        handleFormSuccess();
-      });
-    } catch (error) {
-      console.error('Error al crear vehículo:', error);
-      // El error ya se maneja en el hook
-    }
-  };
-
-  const handleUpdateSubmit = async (vehicleId, updateData) => {
-    try {
-      await updateVehicle(vehicleId, updateData, () => {
-        handleFormSuccess();
-      });
-    } catch (error) {
-      console.error('Error al actualizar vehículo:', error);
-      // El error ya se maneja en el hook
-    }
-  };
-
-  const handleRefresh = () => {
-    refetch();
-  };
-
-  const handleStatusFilterClick = (status) => {
-    setStatusFilter(status);
-    // Limpiar otros filtros para mostrar solo por estado
-    setSearchTerm('');
-    setFilterType('all');
-  };
-
-  // Funciones para calcular estadísticas
-  const getVehiclesByStatus = (status) => {
-    if (status === 'all') return vehicles;
-
-    return vehicles.filter(vehicle => {
-      const effectiveStatus = getEffectiveVehicleStatus(vehicle);
-      return effectiveStatus === status;
-    });
-  };
-
-  const getStatusCounts = () => {
-    const reservedIds = getReservedVehicleIds();
-
-    return {
-      total: vehicles.length,
-      reserved: reservedIds.length,
-      underMaintenance: vehicles.filter(v => v.status === 'underMaintenance').length,
-      maintenanceRequired: vehicles.filter(v => v.status === 'maintenanceRequired').length,
-      outOfService: vehicles.filter(v => v.status === 'outOfService').length,
-      maintenanceCompleted: vehicles.filter(v => {
-        const effectiveStatus = getEffectiveVehicleStatus(v);
-        return effectiveStatus === 'maintenanceCompleted';
-      }).length
-    };
-  };
+  const {
+    // Estados y datos
+    loading,
+    error,
+    authLoading,
+    isAuthenticated,
+    hasAdminRole,
+    operationLoading,
+    showForm,
+    isEditingMode,
+    editingVehicle,
+    searchTerm,
+    filterType,
+    statusFilter,
+    
+    // Datos computados
+    filteredVehicles,
+    uniqueTypes,
+    statusCounts,
+    
+    // Handlers
+    handleAddVehicle,
+    handleEditVehicle,
+    handleCloseForm,
+    handleCreateSubmit,
+    handleUpdateSubmit,
+    handleRefresh,
+    handleStatusFilterClick,
+    setSearchTerm,
+    setFilterType
+  } = useVehicleManagement();
 
   // Mostrar loading mientras se cargan auth y vehículos
   if (loading || authLoading) {
@@ -176,8 +50,6 @@ const VehicleManagementPage = () => {
       </div>
     );
   }
-
-  const isEditingMode = !!editingVehicle;
 
   // Verificar si el usuario está autenticado
   if (!isAuthenticated) {
@@ -201,8 +73,6 @@ const VehicleManagementPage = () => {
       </div>
     );
   }
-
-  const statusCounts = getStatusCounts();
 
   return (
     <div className="min-h-screen bg-neutral-900">
@@ -336,9 +206,9 @@ const VehicleManagementPage = () => {
               </div>
             </div>
           </div>
-          
         </div>
 
+        {/* Indicador de filtro activo */}
         {statusFilter !== 'all' && (
           <div className="mb-6 flex items-center justify-between bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
             <div className="flex items-center">
@@ -360,6 +230,7 @@ const VehicleManagementPage = () => {
           </div>
         )}
 
+        {/* Lista de vehículos o mensaje vacío */}
         {filteredVehicles.length === 0 ? (
           <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-12 text-center">
             <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -396,7 +267,7 @@ const VehicleManagementPage = () => {
                 key={vehicle.id}
                 vehicle={vehicle}
                 onEdit={handleEditVehicle}
-                onRefresh={refetch}
+                onRefresh={handleRefresh}
                 isAdmin={hasAdminRole}
               />
             ))}

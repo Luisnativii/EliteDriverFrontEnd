@@ -87,21 +87,21 @@ const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
       };
     case 'underMaintenance':
       return {
-        text: 'En Mantenimiento',
+        text: 'En mantenimiento',
         className: 'bg-yellow-100 text-yellow-800 border-yellow-200',
         iconColor: 'text-yellow-600',
         icon: Loader2
       };
     case 'maintenanceRequired':
       return {
-        text: 'Requiere Mantenimiento',
+        text: 'Requiere mantenimiento',
         className: 'bg-orange-100 text-orange-800 border-orange-200',
         iconColor: 'text-orange-600',
         icon: AlertTriangle
       };
     case 'maintenanceCompleted':
       return {
-        text: 'Mantenimiento Completado',
+        text: 'Mantenimiento al día',
         className: 'bg-emerald-100 text-emerald-800 border-emerald-200',
         iconColor: 'text-emerald-600',
         icon: CheckCircle

@@ -53,6 +53,17 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
     }
   };
 
+  // Manejar URLs de imágenes adicionales
+  const handleImageUrlsChange = (e) => {
+    const value = e.target.value;
+
+    setFormData(prev => ({
+      ...prev,
+      imageUrlsText: value,
+      imageUrls: value ? value.split(',').map(url => url.trim()).filter(url => url !== '') : []
+    }));
+  };
+
   // Calcular información de mantenimiento
   const calculateNextMaintenance = () => {
     if (!formData.kilometers || !vehicle.kmForMaintenance) return null;
@@ -72,6 +83,8 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('🔍 Datos del formulario antes de enviar:', formData);
+    
     // Validación especial para kilómetros en el submit
     if (vehicle.kilometers && parseInt(formData.kilometers) < parseInt(vehicle.kilometers)) {
       alert(`Los kilómetros no pueden ser menores a ${vehicle.kilometers}`);
@@ -79,26 +92,32 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
     }
     
     if (!validateForm()) {
+      console.log('❌ Validación falló, errores:', errors);
       return;
     }
 
-    // Solo enviar los campos que se pueden editar
+    // Preparar datos para actualización - solo campos editables
     const updateData = {
-      pricePerDay: formData.pricePerDay,
-      kilometers: formData.kilometers,
+      pricePerDay: parseFloat(formData.pricePerDay),
+      kilometers: parseInt(formData.kilometers),
       features: formData.featuresText
         ? formData.featuresText.split(',').map(f => f.trim()).filter(f => f !== '')
         : [],
-      mainImageUrl: formData.mainImageUrl,
+      mainImageUrl: formData.mainImageUrl || '',
       imageUrls: formData.imageUrlsText
         ? formData.imageUrlsText.split(',').map(url => url.trim()).filter(url => url !== '')
         : []
     };
 
+    console.log('🚀 Enviando datos de actualización:', updateData);
+    console.log('🆔 ID del vehículo:', vehicle.id);
+
     try {
       await onSubmit(vehicle.id, updateData);
+      console.log('✅ Actualización exitosa');
     } catch (error) {
-      console.error('Error al actualizar vehículo:', error);
+      console.error('❌ Error al actualizar vehículo:', error);
+      alert(`Error al actualizar el vehículo: ${error.message}`);
     }
   };
 
@@ -115,7 +134,7 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
       
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Información no editable - mostrar como texto */}
-        <div className=" p-4 rounded-lg mb-6">
+        <div className="p-4 rounded-lg mb-6">
           <div className="grid grid-row-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-200 mb-1">
@@ -296,7 +315,7 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
           <textarea
             name="imageUrlsText"
             value={formData.imageUrlsText}
-            onChange={handleChange}
+            onChange={handleImageUrlsChange}
             rows="2"
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-white resize-none focus:outline-none focus:ring-2 focus:ring-gray-500"
             placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg (separar con comas)"

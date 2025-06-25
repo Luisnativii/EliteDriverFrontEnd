@@ -16,15 +16,15 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
   const vehicleTypes = [
     'Sedan',
     'SUV',
-    'Pickup',
+    'PickUp',
   ];
 
   const handleFeaturesChange = (e) => {
-    const value = e.target.value;
+    const value = e.target.value || '';
 
     setFormData(prev => ({
       ...prev,
-      featuresText: value, // Texto tal como lo escribe el usuario
+      featuresText: value, 
       features: value ? value.split(',').map(f => f.trim()).filter(f => f !== '') : []
     }));
 
@@ -38,6 +38,24 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
     }
   };
 
+  const handleImageUrlsChange = (e) => {
+    const value = e.target.value || '';
+    
+    setFormData(prev => ({
+      ...prev,
+      imageUrlsText: value,
+      imageUrls: value ? value.split(',').map(url => url.trim()).filter(url => url !== '') : []
+    }));
+
+    if (errors.imageUrls) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.imageUrls;
+        return newErrors;
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -45,9 +63,17 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
       return;
     }
 
-    // Procesar features desde el texto
+    // Procesar los datos para que coincidan con la estructura esperada por la API
     const processedData = {
-      ...formData,
+      name: formData.name.trim(),
+      brand: formData.brand.trim(),
+      model: formData.model.trim(),
+      vehicleType: formData.vehicleType, // Este es el campo correcto para la API
+      capacity: parseInt(formData.capacity),
+      pricePerDay: parseFloat(formData.pricePerDay),
+      kilometers: parseInt(formData.kilometers),
+      kmForMaintenance: parseInt(formData.kmForMaintenance),
+      mainImageUrl: formData.mainImageUrl.trim(),
       features: formData.featuresText
         ? formData.featuresText.split(',').map(f => f.trim()).filter(f => f !== '')
         : [],
@@ -55,6 +81,17 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
         ? formData.imageUrlsText.split(',').map(url => url.trim()).filter(url => url !== '')
         : []
     };
+
+    // Validar que todos los campos requeridos estén presentes y sean válidos
+    if (!processedData.name || !processedData.brand || !processedData.model || 
+        !processedData.vehicleType || isNaN(processedData.capacity) || 
+        isNaN(processedData.pricePerDay) || isNaN(processedData.kilometers) ||
+        isNaN(processedData.kmForMaintenance)) {
+      console.error('Datos procesados inválidos:', processedData);
+      return;
+    }
+
+    console.log('Datos a enviar:', processedData); // Para debug
 
     try {
       await onSubmit(processedData);
@@ -149,10 +186,12 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
               Capacidad (personas) *
             </label>
             <input
-              type="text"
+              type="number"
               name="capacity"
               value={formData.capacity}
               onChange={handleChange}
+              min="1"
+              max="50"
               className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.capacity ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -166,10 +205,12 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
               Precio por Día ($) *
             </label>
             <input
-              type="text"
+              type="number"
               name="pricePerDay"
               value={formData.pricePerDay}
               onChange={handleChange}
+              min="0"
+              step="0.01"
               className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.pricePerDay ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -183,10 +224,11 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
               Kilómetros Actuales *
             </label>
             <input
-              type="text"
+              type="number"
               name="kilometers"
               value={formData.kilometers}
               onChange={handleChange}
+              min="0"
               className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.kilometers ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -200,10 +242,11 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
               Kilómetros para Mantenimiento *
             </label>
             <input
-              type="text"
+              type="number"
               name="kmForMaintenance"
               value={formData.kmForMaintenance}
               onChange={handleChange}
+              min="0"
               className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.kmForMaintenance ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -271,7 +314,7 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
           <textarea
             name="imageUrlsText"
             value={formData.imageUrlsText}
-            onChange={handleChange}
+            onChange={handleImageUrlsChange}
             rows="2"
             className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               errors.imageUrls ? 'border-red-500' : 'border-gray-300'

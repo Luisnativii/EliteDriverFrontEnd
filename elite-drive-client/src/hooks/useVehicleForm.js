@@ -1,36 +1,46 @@
 import { useState, useCallback } from 'react';
 
 export const useVehicleForm = (initialData = {}, isEditMode = false) => {
-  const [formData, setFormData] = useState({
-    // Campos que siempre se muestran
-    name: '',
-    brand: '',
-    model: '',
-    capacity: '',
-    vehicleType: '',
-    pricePerDay: '',
-    kilometers: '',
-    features: [],
-    image: null,
-    mainImageUrl: initialData.mainImageUrl || '',
+  // Initialize with default values to prevent controlled/uncontrolled input issues
+  const getInitialFormData = () => ({
+    // Basic fields - always defined with defaults
+    name: initialData.name || '',
+    brand: initialData.brand || '',
+    model: initialData.model || '',
+    capacity: initialData.capacity?.toString() || '',
+    vehicleType: initialData.vehicleType || initialData.type || '', // Handle both field names
+    pricePerDay: initialData.pricePerDay?.toString() || '',
+    kilometers: initialData.kilometers?.toString() || '',
     kmForMaintenance: initialData.kmForMaintenance?.toString() || '',
-    imageUrlsText: Array.isArray(initialData.imageUrls)
-      ? initialData.imageUrls.join(', ')
-      : (initialData.imageUrls || ''),
-    // Texto editable para características
+    mainImageUrl: initialData.mainImageUrl || '',
+    
+    // Complex fields with proper handling
+    features: Array.isArray(initialData.features) ? initialData.features : [],
     featuresText: (() => {
-      if (initialData.features) {
-        if (Array.isArray(initialData.features)) {
-          return initialData.features.join(', ');
-        } else if (typeof initialData.features === 'string') {
-          return initialData.features;
-        }
+      if (Array.isArray(initialData.features)) {
+        return initialData.features.join(', ');
+      } else if (typeof initialData.features === 'string') {
+        return initialData.features;
       }
       return '';
     })(),
-    ...initialData
+    
+    imageUrls: Array.isArray(initialData.imageUrls) ? initialData.imageUrls : [],
+    imageUrlsText: (() => {
+      if (Array.isArray(initialData.imageUrls)) {
+        return initialData.imageUrls.join(', ');
+      } else if (typeof initialData.imageUrls === 'string') {
+        return initialData.imageUrls;
+      }
+      return '';
+    })(),
+    
+    // Other fields
+    image: null,
+    status: initialData.status || 'maintenanceCompleted'
   });
 
+  const [formData, setFormData] = useState(getInitialFormData);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -38,7 +48,7 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
     const { name, value } = e.target;
 
     // Formateo especial para campos numéricos
-    if (name === 'capacity' || name === 'kilometers') {
+    if (name === 'capacity' || name === 'kilometers' || name === 'kmForMaintenance') {
       const numericValue = value.replace(/\D/g, '');
 
       // Validación especial para kilómetros en modo edición
@@ -47,12 +57,11 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
         const originalKilometers = parseInt(initialData.kilometers);
 
         if (numericValue && newKilometers < originalKilometers) {
-          // No actualizar el valor y mostrar error
           setErrors(prev => ({
             ...prev,
             kilometers: `Los kilómetros no pueden ser menores a ${originalKilometers}`
           }));
-          return; // No actualizar el formData
+          return;
         }
       }
 
@@ -72,7 +81,7 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
     else {
       setFormData(prev => ({
         ...prev,
-        [name]: value
+        [name]: value || '' // Ensure value is never undefined
       }));
     }
 
@@ -104,6 +113,12 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
         newErrors.kilometers = 'Los kilómetros no pueden ser negativos';
       } else if (initialData.kilometers && parseInt(formData.kilometers) < parseInt(initialData.kilometers)) {
         newErrors.kilometers = `Los kilómetros no pueden ser menores a ${initialData.kilometers}`;
+      }
+
+      if (!formData.kmForMaintenance) {
+        newErrors.kmForMaintenance = 'Los kilómetros para mantenimiento son requeridos';
+      } else if (parseInt(formData.kmForMaintenance) <= parseInt(formData.kilometers)) {
+        newErrors.kmForMaintenance = 'Los kilómetros para mantenimiento deben ser mayores a los kilómetros actuales';
       }
     } else {
       // Validaciones completas para creación
@@ -140,28 +155,77 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
       } else if (parseInt(formData.kilometers) < 0) {
         newErrors.kilometers = 'Los kilómetros no pueden ser negativos';
       }
+
+      if (!formData.kmForMaintenance) {
+        newErrors.kmForMaintenance = 'Los kilómetros para mantenimiento son requeridos';
+      } else if (parseInt(formData.kmForMaintenance) <= parseInt(formData.kilometers)) {
+        newErrors.kmForMaintenance = 'Los kilómetros para mantenimiento deben ser mayores a los kilómetros actuales';
+      }
+
+      if (!formData.featuresText.trim()) {
+        newErrors.features = 'Las características son requeridas';
+      }
+
+      if (!formData.mainImageUrl.trim()) {
+        newErrors.mainImageUrl = 'La URL de la imagen principal es requerida';
+      } else if (!isValidUrl(formData.mainImageUrl)) {
+        newErrors.mainImageUrl = 'La URL de la imagen principal no es válida';
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [formData, isEditMode, initialData.kilometers]);
 
+  const isValidUrl = (string) => {
+    try {
+      new URL(string);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
   const resetForm = useCallback(() => {
-    setFormData({
-      name: '',
-      brand: '',
-      model: '',
-      capacity: '',
-      vehicleType: '',
-      pricePerDay: '',
-      kilometers: '',
-      features: [],
-      image: null,
-      ...initialData,
-      featuresText: initialData.features ? initialData.features.join(', ') : ''
-    });
+    setFormData(getInitialFormData());
     setErrors({});
   }, [initialData]);
+
+  // Helper function to prepare data for submission
+  const getSubmissionData = useCallback(() => {
+    const submissionData = {
+      name: formData.name.trim(),
+      brand: formData.brand.trim(),
+      model: formData.model.trim(),
+      type: formData.vehicleType, // Map vehicleType to type for API
+      capacity: parseInt(formData.capacity),
+      pricePerDay: parseFloat(formData.pricePerDay),
+      kilometers: parseInt(formData.kilometers),
+      kmForMaintenance: parseInt(formData.kmForMaintenance),
+      mainImageUrl: formData.mainImageUrl.trim(),
+      status: formData.status || 'maintenanceCompleted',
+      
+      // Process features from text
+      features: formData.featuresText
+        ? formData.featuresText.split(',').map(f => f.trim()).filter(f => f !== '')
+        : [],
+      
+      // Process image URLs from text
+      imageUrls: formData.imageUrlsText
+        ? formData.imageUrlsText.split(',').map(url => url.trim()).filter(url => url !== '')
+        : []
+    };
+
+    // Remove empty or invalid fields
+    Object.keys(submissionData).forEach(key => {
+      if (submissionData[key] === '' || submissionData[key] === null || 
+          (Array.isArray(submissionData[key]) && submissionData[key].length === 0 && key !== 'features')) {
+        delete submissionData[key];
+      }
+    });
+
+    return submissionData;
+  }, [formData]);
 
   return {
     formData,
@@ -172,6 +236,7 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
     resetForm,
     setFormData,
     setErrors,
-    setIsLoading
+    setIsLoading,
+    getSubmissionData // New helper function
   };
 };
