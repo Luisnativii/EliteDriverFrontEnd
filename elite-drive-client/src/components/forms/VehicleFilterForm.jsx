@@ -12,7 +12,7 @@ const VehicleFilterForm = ({
   onRefresh
 }) => {
   return (
-    <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 mb-8 overflow-hidden">
+    <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/10 mb-8 overflow-hidden">
       <div className="px-8 py-6 border-b border-white/10">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">

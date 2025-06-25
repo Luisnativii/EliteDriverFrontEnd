@@ -61,7 +61,7 @@ const VehicleCard = ({ vehicle, isFiltered = false }) => {
                 )}
                 <button
                     onClick={handleReservation}
-                    className="cursor-pointer bg-gradient-to-r from-neutral-700 to-neutral-900 text-white px-4 py-2 rounded-full hover:from-neutral-600 hover:to-neutral-800 transition-all duration-300 shadow-md">
+                    className="cursor-pointer bg-gradient-to-r from-black to-neutral-900 text-white px-4 py-2 rounded-full hover:from-neutral-600 hover:to-neutral-800 transition-all duration-300 shadow-md">
                     Alquilar
                 </button>
             </div>
@@ -151,15 +151,15 @@ const VehiclesPage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-neutral-800 via-neutral-900 to-black text-white px-6 py-25 ">
-            <h1 className="text-3xl font-bold mb-6 text-white">Vehículos Disponibles</h1>
+            <h1 className="text-2xl font-bold mb-6 text-white">Vehículos Disponibles</h1>
 
             {/* Filtros */}
-            <div className="flex flex-wrap gap-4 mb-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-lg">
+            <div className="flex flex-wrap gap-4 mb-8 bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-lg">
                 {['all', 'Sedan', 'SUV', 'PickUp'].map(type => (
                     <button
                         key={type}
                         onClick={() => setFilteredType(type)}
-                        className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${filteredType === type
+                        className={`px-6 py-2 rounded-3xl text-sm font-semibold transition-all duration-300 ${filteredType === type
                             ? 'bg-white text-neutral-900 shadow-md'
                             : 'bg-white/10 text-white hover:bg-white/20 border border-white/30'
                             }`}
@@ -176,7 +176,7 @@ const VehiclesPage = () => {
 
             {/* Mostrar información de filtros activos */}
             {hasDateFilter && (
-                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="mb-6 p-6 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-blue-800">
                         📅 Mostrando disponibilidad del {new Date(startDate).toLocaleDateString()} al {new Date(endDate).toLocaleDateString()}
                     </p>

@@ -85,7 +85,8 @@ const transformVehicleData = (apiVehicle) => {
     kmForMaintenance: apiVehicle.kmForMaintenance || null, // <- agregado
     features: apiVehicle.features || [],
     image: apiVehicle.mainImageUrl || null,
-     imageUrls: apiVehicle.imageUrls || []   // <- arreglo de imágenes
+     imageUrls: apiVehicle.imageUrls || [],
+     status: apiVehicle.status || 'available'
   };
 };
 
@@ -142,7 +143,7 @@ const transformVehicleForAPI = (vehicleData) => {
 };
 
 const transformVehicleForUpdate = (vehicleData) => {
-  console.log('🔄 Transformando vehículo para actualización (solo campos permitidos):', vehicleData);
+  console.log('🔄 Transformando vehículo para actualización (campos permitidos):', vehicleData);
   
   // Procesar features de manera más robusta
   let processedFeatures = [];
@@ -154,11 +155,20 @@ const transformVehicleForUpdate = (vehicleData) => {
     }
   }
   
-  // Solo validar y enviar los campos que se pueden actualizar
+  // Procesar imageUrls si viene como array o string
+  let processedImageUrls = [];
+  if (vehicleData.imageUrls) {
+    if (Array.isArray(vehicleData.imageUrls)) {
+      processedImageUrls = vehicleData.imageUrls.filter(url => url && typeof url === 'string' && url.trim() !== '');
+    } else if (typeof vehicleData.imageUrls === 'string') {
+      processedImageUrls = vehicleData.imageUrls.split(',').map(url => url.trim()).filter(url => url !== '');
+    }
+  }
+  
+  // Validar campos requeridos
   const pricePerDay = parseFloat(vehicleData.pricePerDay || vehicleData.price);
   const kilometers = parseInt(vehicleData.kilometers);
   
-  // Validar que los campos requeridos estén presentes
   if (isNaN(pricePerDay) || isNaN(kilometers)) {
     console.error('❌ Datos incompletos para actualización:', { pricePerDay, kilometers });
     throw new Error('Precio por día y kilómetros son requeridos para la actualización');
@@ -167,7 +177,9 @@ const transformVehicleForUpdate = (vehicleData) => {
   const updateData = {
     pricePerDay,
     kilometers,
-    features: processedFeatures
+    features: processedFeatures,
+    mainImageUrl: vehicleData.mainImageUrl || null,
+    imageUrls: processedImageUrls
   };
   
   console.log('📤 Datos transformados para actualización:', updateData);

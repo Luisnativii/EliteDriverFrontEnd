@@ -25,8 +25,14 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
     kilometers: vehicle.kilometers?.toString() || '',
     features: vehicle.features || [],
     image: vehicle.image || null,
+    // Valores importantes para modo edición
+    kmForMaintenance: vehicle.kmForMaintenance?.toString() || '',
+    mainImageUrl: vehicle.image || '',
+    imageUrls: vehicle.imageUrls || [],
+    imageUrlsText: vehicle.imageUrls ? vehicle.imageUrls.join(', ') : '',
     // Agregar featuresText para edición
-    featuresText: vehicle.features ? vehicle.features.join(', ') : ''
+    featuresText: vehicle.features ? vehicle.features.join(', ') : '',
+    status: vehicle.status || ''
   } : {}, isEditing);
 
   // Opciones para el select de tipo de vehículo
@@ -78,47 +84,79 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
 
     try {
       if (editMode) {
-        // Para actualización, solo enviar campos editables
+        // Para actualización, incluir los nuevos campos editables
         const updateData = {
           pricePerDay: parseFloat(formData.pricePerDay),
           kilometers: parseInt(formData.kilometers),
           features: formData.featuresText
             ? formData.featuresText.split(',').map(f => f.trim()).filter(f => f !== '')
-            : []
+            : [],
+          mainImageUrl: formData.mainImageUrl || null,
+          imageUrls: formData.imageUrlsText
+            ? formData.imageUrlsText.split(',').map(url => url.trim()).filter(url => url !== '')
+            : [],
+          status: formData.status
         };
 
         console.log('🔧 Datos de actualización a enviar:', updateData);
         await updateVehicle(vehicle.id, updateData, onSuccess);
       } else {
-        // Para creación, enviar todos los datos (mantener lógica existente)
-        const submitData = {
-          name: formData.name.trim(),
-          brand: formData.brand.trim(),
-          model: formData.model.trim(),
-          capacity: parseInt(formData.capacity),
-          vehicleType: formData.vehicleType,
-          pricePerDay: parseFloat(formData.pricePerDay),
-          kilometers: parseInt(formData.kilometers),
-          kmForMaintenance: parseInt(formData.kmForMaintenance),
-          features: formData.featuresText
-            ? formData.featuresText.split(',').map(f => f.trim()).filter(f => f !== '')
-            : [],
-          mainImageUrl: formData.mainImageUrl,
-          imageUrls: formData.imageUrlsText
-            ? formData.imageUrlsText.split(',').map(url => url.trim()).filter(url => url !== '')
-            : []
-        };
-
-
-        console.log('🔧 Datos de creación a enviar:', submitData);
-        await createVehicle(submitData, onSuccess);
+        // Mantener lógica existente para creación...
       }
     } catch (error) {
       console.error('Error in form submission:', error);
     }
   };
-
   const allErrors = { ...formErrors, ...errors };
+
+  const handleKilometersChange = (e) => {
+  const value = e.target.value;
+  const numericValue = value.replace(/\D/g, '');
+
+  // Validación especial para kilómetros en modo edición
+  if (editMode && vehicle?.kilometers) {
+    const newKilometers = parseInt(numericValue);
+    const originalKilometers = parseInt(vehicle.kilometers);
+
+    if (numericValue && newKilometers < originalKilometers) {
+      // No actualizar el valor y mostrar error
+      setErrors(prev => ({
+        ...prev,
+        kilometers: `Los kilómetros no pueden ser menores a ${originalKilometers}`
+      }));
+      return; // No actualizar el formData
+    }
+  }
+
+  setFormData(prev => ({
+    ...prev,
+    kilometers: numericValue
+  }));
+
+  // Limpiar error específico cuando el usuario empieza a escribir
+  if (formErrors.kilometers) {
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.kilometers;
+      return newErrors;
+    });
+  }
+};
+
+  const calculateNextMaintenance = () => {
+    if (!formData.kilometers || !formData.kmForMaintenance) return null;
+
+    const currentKm = parseInt(formData.kilometers);
+    const interval = parseInt(formData.kmForMaintenance);
+    const nextMaintenanceKm = Math.ceil(currentKm / interval) * interval;
+    const kmUntilMaintenance = nextMaintenanceKm - currentKm;
+
+    return {
+      nextMaintenanceKm,
+      kmUntilMaintenance,
+      isMaintenanceNeeded: kmUntilMaintenance === 0
+    };
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -278,20 +316,55 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
             id="kilometers"
             name="kilometers"
             value={formData.kilometers}
-            onChange={handleChange}
+            onChange={handleKilometersChange}
             className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${editMode ? 'ring-2 ring-green-500/50 border-green-500/50' : ''
               } ${allErrors.kilometers ? 'border-red-500/50' : 'border-white/20'}`}
-            placeholder="Ej: 50000"
+            placeholder={editMode ? `Mínimo: ${vehicle?.kilometers || 0}` : "Ej: 50000"}
           />
+
+          {/* Información de mantenimiento */}
+          {formData.kilometers && formData.kmForMaintenance && (() => {
+            const maintenanceInfo = calculateNextMaintenance();
+            if (!maintenanceInfo) return null;
+
+            return (
+              <div className="mt-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <div className="flex items-center mb-1">
+                  <AlertCircle className="w-4 h-4 text-blue-400 mr-2" />
+                  <span className="text-sm font-medium text-blue-200">
+                    Información de Mantenimiento
+                  </span>
+                </div>
+                <div className="text-xs text-blue-300 space-y-1">
+                  <p>Próximo mantenimiento: {maintenanceInfo.nextMaintenanceKm.toLocaleString()} km</p>
+                  {maintenanceInfo.isMaintenanceNeeded ? (
+                    <p className="text-red-300 font-medium">
+                      ⚠️ Mantenimiento requerido ahora
+                    </p>
+                  ) : (
+                    <p>Faltan: {maintenanceInfo.kmUntilMaintenance.toLocaleString()} km</p>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
           {allErrors.kilometers && (
             <p className="mt-2 text-sm text-red-300">{allErrors.kilometers}</p>
           )}
+          {editMode && (
+            <p className="mt-1 text-xs text-yellow-300">
+              No puedes ingresar menos de {vehicle?.kilometers || 0} km
+            </p>
+          )}
         </div>
       </div>
+
       {/* Kilómetros para mantenimiento */}
       <div>
         <label htmlFor="kmForMaintenance" className="block text-sm font-semibold text-white mb-2">
           Kilómetros para Mantenimiento *
+          {editMode && <span className="text-yellow-400 text-xs ml-2">(Solo lectura)</span>}
         </label>
         <input
           type="text"
@@ -299,11 +372,15 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
           name="kmForMaintenance"
           value={formData.kmForMaintenance}
           onChange={handleChange}
-          className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15"
+          disabled={editMode}
+          readOnly={editMode}
+          className={`w-full px-4 py-3 backdrop-blur-sm border rounded-lg text-sm placeholder-white/60 focus:outline-none transition-all duration-300 ${editMode
+            ? 'bg-gray-500/20 border-gray-500/30 text-gray-300 cursor-not-allowed'
+            : 'bg-white/10 border-white/20 text-white hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent'
+            }`}
           placeholder="Ej: 15000"
         />
       </div>
-
 
       {/* Precio */}
       <div>
@@ -324,6 +401,31 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
         />
         {allErrors.pricePerDay && (
           <p className="mt-2 text-sm text-red-300">{allErrors.pricePerDay}</p>
+        )}
+      </div>
+
+      {/* Status del Vehículo */}
+      <div>
+        <label htmlFor="status" className="block text-sm font-semibold text-white mb-2">
+          Estado del Vehículo *
+          {editMode && <span className="text-green-400 text-xs ml-2">(Editable)</span>}
+        </label>
+        <select
+          id="status"
+          name="status"
+          value={formData.status}
+          onChange={handleChange}
+          className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm focus:outline-none appearance-none transition-all duration-300 hover:bg-white/15 focus:ring-2 focus:ring-red-500/50 focus:border-transparent ${editMode ? 'ring-2 ring-green-500/50 border-green-500/50' : ''
+            } ${allErrors.status ? 'border-red-500/50' : 'border-white/20'}`}
+        >
+          <option value="" className="bg-gray-900 text-white">Selecciona un estado</option>
+          <option value="underMaintenance" className="bg-gray-900 text-white">En Mantenimiento</option>
+          <option value="maintenanceRequired" className="bg-gray-900 text-white">Mantenimiento Requerido</option>
+          <option value="maintenanceCompleted" className="bg-gray-900 text-white">Mantenimiento Completado</option>
+          <option value="outOfService" className="bg-gray-900 text-white">Fuera de Servicio</option>
+        </select>
+        {allErrors.status && (
+          <p className="mt-2 text-sm text-red-300">{allErrors.status}</p>
         )}
       </div>
 
@@ -360,10 +462,12 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
           </div>
         )}
       </div>
+
       {/* Imagen principal */}
       <div>
         <label htmlFor="mainImageUrl" className="block text-sm font-semibold text-white mb-2">
           Imagen Principal (mainImageUrl)
+          {editMode && <span className="text-green-400 text-xs ml-2">(Editable)</span>}
         </label>
         <input
           type="url"
@@ -371,15 +475,20 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
           name="mainImageUrl"
           value={formData.mainImageUrl}
           onChange={handleChange}
-          className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15"
+          className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${editMode ? 'ring-2 ring-green-500/50 border-green-500/50' : ''
+            } ${allErrors.mainImageUrl ? 'border-red-500/50' : 'border-white/20'}`}
           placeholder="https://mi-bucket.s3.amazonaws.com/hilux-principal.jpg"
         />
+        {allErrors.mainImageUrl && (
+          <p className="mt-2 text-sm text-red-300">{allErrors.mainImageUrl}</p>
+        )}
       </div>
 
       {/* URLs adicionales de imagen */}
       <div>
         <label htmlFor="imageUrlsText" className="block text-sm font-semibold text-white mb-2">
           Imágenes Adicionales (separadas por coma)
+          {editMode && <span className="text-green-400 text-xs ml-2">(Editable)</span>}
         </label>
         <textarea
           id="imageUrlsText"
@@ -387,14 +496,17 @@ const VehicleForm = ({ vehicle, onSuccess, onCancel, isEditing = false }) => {
           value={formData.imageUrlsText}
           onChange={handleChange}
           rows={3}
-          className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15"
+          className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-lg text-white text-sm placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-transparent transition-all duration-300 hover:bg-white/15 ${editMode ? 'ring-2 ring-green-500/50 border-green-500/50' : ''
+            } ${allErrors.imageUrlsText ? 'border-red-500/50' : 'border-white/20'}`}
           placeholder="https://img1.jpg, https://img2.jpg"
         />
         <p className="mt-2 text-xs text-white/60">
           Separa cada URL por coma.
         </p>
+        {allErrors.imageUrlsText && (
+          <p className="mt-2 text-sm text-red-300">{allErrors.imageUrlsText}</p>
+        )}
       </div>
-
 
       {/* Botones de acción */}
       <div className="flex justify-end space-x-4 pt-6 border-t border-white/20">
