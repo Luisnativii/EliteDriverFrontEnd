@@ -5,7 +5,6 @@ import EditVehicleForm from '../../components/forms/EditVehicleForm';
 import VehicleCard from '../../components/vehicle/VehicleCard';
 import VehicleFilterForm from '../../components/forms/VehicleFilterForm';
 import LoadingSpinner from '../../components/layout/LoadingSpinner';
-import ReservationService from '@/services/reservationService';
 import { Plus, Search, AlertCircle, Wrench, Car, Calendar } from 'lucide-react';
 
 const VehicleManagementPage = () => {
@@ -103,6 +102,41 @@ const VehicleManagementPage = () => {
             onAddVehicle={handleAddVehicle}
             onRefresh={handleRefresh}
           />
+        </div>
+        {/* Indicador de fechas de reservación */}
+        <div className="flex justify-end my-6 gap-4 flex-wrap items-center">
+          <div className="flex items-center gap-2">
+            <label className="text-white/80 text-sm font-medium whitespace-nowrap">
+              Desde:
+            </label>
+            <input
+              type="date"
+              value={reservationDateFrom}
+              onChange={(e) => handleReservationDateFromChange(e.target.value)}
+              className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-white/80 text-sm font-medium whitespace-nowrap">
+              Hasta:
+            </label>
+            <input
+              type="date"
+              value={reservationDateTo}
+              onChange={(e) => handleReservationDateToChange(e.target.value)}
+              className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+            />
+          </div>
+          <button
+            onClick={() => {
+              const today = new Date().toISOString().split('T')[0];
+              setReservationDateFrom(today);
+              setReservationDateTo(today);
+            }}
+            className="text-green-300 hover:text-green-100 transition-colors duration-300 text-sm bg-green-500/20 px-3 py-2 rounded-lg hover:bg-green-500/30 whitespace-nowrap"
+          >
+            Hoy
+          </button>
         </div>
 
         {/* Error Message con glassmorphism */}
@@ -244,43 +278,6 @@ const VehicleManagementPage = () => {
               </button>
             </div>
 
-            {/* Mostrar filtro de fechas solo para reservados */}
-            {statusFilter === 'reserved' && (
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                <div className="flex items-center gap-2">
-                  <label className="text-white/80 text-sm font-medium whitespace-nowrap">
-                    Desde:
-                  </label>
-                  <input
-                    type="date"
-                    value={reservationDateFrom}
-                    onChange={(e) => handleReservationDateFromChange(e.target.value)}
-                    className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-white/80 text-sm font-medium whitespace-nowrap">
-                    Hasta:
-                  </label>
-                  <input
-                    type="date"
-                    value={reservationDateTo}
-                    onChange={(e) => handleReservationDateToChange(e.target.value)}
-                    className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
-                  />
-                </div>
-                <button
-                  onClick={() => {
-                    const today = new Date().toISOString().split('T')[0];
-                    setReservationDateFrom(today);
-                    setReservationDateTo(today);
-                  }}
-                  className="text-green-300 hover:text-green-100 transition-colors duration-300 text-sm bg-green-500/20 px-3 py-2 rounded-lg hover:bg-green-500/30 whitespace-nowrap"
-                >
-                  Hoy
-                </button>
-              </div>
-            )}
           </div>
         )}
         {/* Lista de vehículos o mensaje vacío */}

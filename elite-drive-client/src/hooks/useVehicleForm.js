@@ -156,9 +156,7 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
 
       if (!formData.kmForMaintenance) {
         newErrors.kmForMaintenance = 'Los kilómetros para mantenimiento son requeridos';
-      } else if (parseInt(formData.kmForMaintenance) <= parseInt(formData.kilometers)) {
-        newErrors.kmForMaintenance = 'Los kilómetros para mantenimiento deben ser mayores a los kilómetros actuales';
-      }
+      } 
 
       if (!formData.featuresText.trim()) {
         newErrors.features = 'Las características son requeridas';
