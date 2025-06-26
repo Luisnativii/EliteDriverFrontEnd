@@ -245,25 +245,49 @@ static async getReservedVehicleIdsToday() {
     }
 
     static async getAllReservations() {
-        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-        const url = `${API_BASE_URL}${API_ENDPOINTS.RESERVATIONS.GET_ALL || '/reservations'}`;
-        
-        const response = await fetch(url, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...(token && { Authorization: `Bearer ${token}` })
-            }
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || 'Error al obtener todas las reservas');
-        }
-
-        const text = await response.text();
-        const data = text ? JSON.parse(text) : [];
-        return data;
+  const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+  const url = `${API_BASE_URL}${API_ENDPOINTS.RESERVATIONS.GET_ALL || '/reservations/all'}`;
+  
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` })
     }
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || 'Error al obtener todas las reservas');
+  }
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : [];
+  
+  // Asegurar que los datos tengan la estructura correcta
+  return data.map(reservation => ({
+    ...reservation,
+    // Asegurar que las fechas estén en formato ISO
+    startDate: new Date(reservation.startDate).toISOString(),
+    endDate: new Date(reservation.endDate).toISOString(),
+    createdAt: reservation.createdAt ? new Date(reservation.createdAt).toISOString() : new Date().toISOString(),
+    // Asegurar estructura de usuario
+    user: {
+      id: reservation.user?.id || reservation.userId,
+      name: reservation.user?.name || reservation.userName || 'Usuario no disponible',
+      email: reservation.user?.email || reservation.userEmail || 'email@no-disponible.com',
+      dui: reservation.user?.dui || reservation.userDui || 'N/A'
+    },
+    // Asegurar estructura de vehículo
+    vehicle: {
+      id: reservation.vehicle?.id || reservation.vehicleId,
+      name: reservation.vehicle?.name || reservation.vehicleName || 'Vehículo no disponible',
+      brand: reservation.vehicle?.brand || reservation.vehicleBrand || 'N/A',
+      model: reservation.vehicle?.model || reservation.vehicleModel || 'N/A',
+      type: reservation.vehicle?.vehicleType?.type || reservation.vehicle?.type || reservation.vehicleType || 'N/A',
+      capacity: reservation.vehicle?.capacity || reservation.vehicleCapacity || 0
+    }
+  }));
+}
 
 
 }
