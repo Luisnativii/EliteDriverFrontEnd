@@ -40,7 +40,7 @@ export const useReservationManagement = () => {
         startDate: reservation.startDate,
         endDate: reservation.endDate,
         totalPrice: reservation.totalPrice,
-        status: reservation.status || 'active',
+        status: reservation.status || 'confirmado',
         createdAt: reservation.createdAt || new Date().toISOString(),
         user: {
           id: reservation.user?.id || reservation.userId,

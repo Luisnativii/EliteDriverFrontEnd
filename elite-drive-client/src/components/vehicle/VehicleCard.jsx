@@ -81,8 +81,8 @@ const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
     case 'reserved':
       return {
         text: 'Reservado',
-        className: 'bg-blue-100 text-blue-800 border-blue-200',
-        iconColor: 'text-blue-600',
+        className: 'bg-green-500 text-green-900 border-green-600',
+        iconColor: 'text-green-900',
         icon: Users
       };
     case 'underMaintenance':
@@ -124,8 +124,9 @@ const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
 };
   
   const renderStatus = () => {
-    if (!vehicle.status) return null;
-    const statusConfig = getStatusConfig(vehicle.status);
+    const effectiveStatus = vehicle.effectiveStatus || vehicle.status;
+if (!effectiveStatus) return null;
+const statusConfig = getStatusConfig(effectiveStatus);
     const StatusIcon = statusConfig.icon;
 
     return (

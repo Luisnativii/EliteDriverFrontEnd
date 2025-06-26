@@ -76,7 +76,7 @@ const VehiclesPage = () => {
     // Filtrar vehículos disponibles
     let filteredVehicles = vehicles.filter(vehicle => {
         // Solo mostrar vehículos con estado "maintenanceCompleted" o sin estado definido
-        const vehicleStatus = vehicle.status || 'maintenanceCompleted';
+        const vehicleStatus = vehicle.status || 'maintenanceCompleted' ;
         const isMaintenanceCompleted = vehicleStatus === 'maintenanceCompleted';
         
         // Filtrar por tipo si no es 'all'
