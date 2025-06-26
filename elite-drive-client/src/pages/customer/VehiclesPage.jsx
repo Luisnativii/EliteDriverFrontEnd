@@ -6,15 +6,12 @@ import DateForm from '../../components/forms/DateForm';
 import ReservationService from '../../services/reservationService';
 import { useAuth } from '../../hooks/useAuth';
 
-
-
 // Componente para cada tarjeta de vehículo
 const VehicleCard = ({ vehicle, isFiltered = false }) => {
     const { user } = useAuth();
-
-
     const navigate = useNavigate();
     const { startDate, endDate } = useDateContext();
+    
     const handleReservation = () => {
         if (!user) {
             navigate('/login', {
@@ -25,14 +22,12 @@ const VehicleCard = ({ vehicle, isFiltered = false }) => {
         }
     };
 
-
     // Calcular precio si hay fechas seleccionadas
     const calculation = startDate && endDate
         ? ReservationService.calculateTotalPrice(startDate, endDate, vehicle.price)
         : null;
 
     return (
-        //vehicle card
         <div className={`bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-xl transition-all duration-300 hover:scale-105 hover:bg-white/15 ${isFiltered ? 'ring-2 ring-white/30' : ''}`}>
             <div className="w-full h-40 bg-gray-200 rounded-lg mb-4 overflow-hidden">
                 <img
@@ -70,22 +65,28 @@ const VehicleCard = ({ vehicle, isFiltered = false }) => {
 };
 
 const VehiclesPage = () => {
-
     const { vehicles, loading, error } = useVehicles();
     const { startDate, endDate } = useDateContext();
     const [filteredType, setFilteredType] = useState('all');
-    // Definir si hay filtros de fecha activos
-    const hasDateFilter = startDate && endDate;
     const [busyVehicleIds, setBusyVehicleIds] = useState([]);
 
-    let filteredVehicles = filteredType === 'all'
-        ? vehicles
-        : vehicles.filter(v => v.type === filteredType);
+    // Definir si hay filtros de fecha activos
+    const hasDateFilter = startDate && endDate;
 
-    // Si hay fechas seleccionadas, quitamos los vehículos ocupados
-    if (startDate && endDate && busyVehicleIds.length > 0) {
-        filteredVehicles = filteredVehicles.filter(v => !busyVehicleIds.includes(v.id));
-    }
+    // Filtrar vehículos disponibles
+    let filteredVehicles = vehicles.filter(vehicle => {
+        // Solo mostrar vehículos con estado "maintenanceCompleted" o sin estado definido
+        const vehicleStatus = vehicle.status || 'maintenanceCompleted';
+        const isMaintenanceCompleted = vehicleStatus === 'maintenanceCompleted';
+        
+        // Filtrar por tipo si no es 'all'
+        const typeMatch = filteredType === 'all' || vehicle.type === filteredType;
+        
+        // No mostrar vehículos ocupados si hay fechas seleccionadas
+        const isNotBusy = !hasDateFilter || !busyVehicleIds.includes(vehicle.id);
+        
+        return isMaintenanceCompleted && typeMatch && isNotBusy;
+    });
 
     useEffect(() => {
         if (startDate && endDate) {
@@ -112,10 +113,11 @@ const VehiclesPage = () => {
                     setBusyVehicleIds(busyIds);
                 })
                 .catch(console.error);
+        } else {
+            // Si no hay fechas seleccionadas, limpiar la lista de vehículos ocupados
+            setBusyVehicleIds([]);
         }
     }, [startDate, endDate]);
-
-
 
     // Manejo de estados de carga y error
     if (loading) {
@@ -144,10 +146,6 @@ const VehiclesPage = () => {
             </div>
         );
     }
-
-
-
-
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-neutral-800 via-neutral-900 to-black text-white px-6 py-25 ">
@@ -183,6 +181,28 @@ const VehiclesPage = () => {
                 </div>
             )}
 
+            {/* Mensaje cuando no hay vehículos disponibles */}
+            {filteredVehicles.length === 0 && (
+                <div className="text-center py-12">
+                    <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 shadow-xl">
+                        <h3 className="text-xl font-semibold text-white mb-4">
+                            No hay vehículos disponibles
+                        </h3>
+                        <p className="text-white/70 mb-4">
+                            {hasDateFilter 
+                                ? 'No hay vehículos disponibles para las fechas seleccionadas.' 
+                                : 'Actualmente no hay vehículos disponibles para alquilar.'
+                            }
+                        </p>
+                        {hasDateFilter && (
+                            <p className="text-white/60 text-sm">
+                                Intenta seleccionar otras fechas o contacta con nosotros para más opciones.
+                            </p>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* Grid de vehículos */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {filteredVehicles.map(vehicle => (
@@ -195,7 +215,6 @@ const VehiclesPage = () => {
             </div>
         </div>
     );
-
-}
+};
 
 export default VehiclesPage;

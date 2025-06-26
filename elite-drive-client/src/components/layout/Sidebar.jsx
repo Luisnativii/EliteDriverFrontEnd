@@ -64,8 +64,9 @@ const Sidebar = ({ toggleSidebar, isMobile }) => {
   const menuOptions = {
     ADMIN: [
       { name: "Dashboard", path: "/admin", icon: "Home" },
-      { name: "Gestión de Vehículos", path: "/admin/vehicle", icon: "Car" },
+      
       { name: "Gestión de Reservas", path: "/admin/reservation", icon: "Calendar" },
+      { name: "Gestión de Vehículos", path: "/admin/vehicle", icon: "Car" },
       { name: "Mantenimiento", path: "/admin/maintenance", icon: "Wrench" },
     ],
     USER: [

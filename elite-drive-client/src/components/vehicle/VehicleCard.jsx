@@ -9,7 +9,7 @@ import {
   Car,
   AlertTriangle,
   CheckCircle,
-  Loader2
+  Wrench
 } from 'lucide-react';
 
 const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
@@ -90,7 +90,7 @@ const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
         text: 'En mantenimiento',
         className: 'bg-yellow-100 text-yellow-800 border-yellow-200',
         iconColor: 'text-yellow-600',
-        icon: Loader2
+        icon: Wrench
       };
     case 'maintenanceRequired':
       return {
@@ -130,7 +130,7 @@ const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
 
     return (
       <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusConfig.className}`}>
-        <StatusIcon className={`w-3 h-3 mr-1 ${statusConfig.iconColor} ${vehicle.status === 'underMaintenance' ? 'animate-spin' : ''}`} />
+        <StatusIcon className={`w-3 h-3 mr-1 ${statusConfig.iconColor} ${vehicle.status === 'underMaintenance' ? '' : ''}`} />
         {statusConfig.text}
       </div>
     );

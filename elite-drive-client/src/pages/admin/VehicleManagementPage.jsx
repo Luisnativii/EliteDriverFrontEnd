@@ -5,6 +5,7 @@ import EditVehicleForm from '../../components/forms/EditVehicleForm';
 import VehicleCard from '../../components/vehicle/VehicleCard';
 import VehicleFilterForm from '../../components/forms/VehicleFilterForm';
 import LoadingSpinner from '../../components/layout/LoadingSpinner';
+import ReservationService from '@/services/reservationService';
 import { Plus, Search, AlertCircle, Wrench, Car, Calendar } from 'lucide-react';
 
 const VehicleManagementPage = () => {
@@ -22,12 +23,19 @@ const VehicleManagementPage = () => {
     searchTerm,
     filterType,
     statusFilter,
-    
+    reservationsLoading,
+    reservationDateFrom,
+    reservationDateTo,
+
     // Datos computados
     filteredVehicles,
     uniqueTypes,
     statusCounts,
-    
+
+    // Utilities
+    getEffectiveVehicleStatus,
+    getReservedVehicleIds,
+
     // Handlers
     handleAddVehicle,
     handleEditVehicle,
@@ -37,20 +45,26 @@ const VehicleManagementPage = () => {
     handleRefresh,
     handleStatusFilterClick,
     setSearchTerm,
-    setFilterType
+    setFilterType,
+    handleReservationDateFromChange,
+    handleReservationDateToChange,
+    setReservationDateFrom,
+    setReservationDateTo,
   } = useVehicleManagement();
 
   // Mostrar loading mientras se cargan auth y vehículos
-  if (loading || authLoading) {
+  if (loading || authLoading || reservationsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center">
         <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20">
           <LoadingSpinner />
+          <p className="text-white mt-4 text-center">
+            {reservationsLoading ? 'Cargando reservaciones...' : 'Cargando...'}
+          </p>
         </div>
       </div>
     );
   }
-
   // Verificar si el usuario está autenticado
   if (!isAuthenticated) {
     return (
@@ -210,26 +224,65 @@ const VehicleManagementPage = () => {
 
         {/* Indicador de filtro activo */}
         {statusFilter !== 'all' && (
-          <div className="mb-6 flex items-center justify-between bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
-            <div className="flex items-center">
-              <span className="text-white/70 text-sm mr-2">Filtrando por:</span>
-              <span className="bg-white/20 text-white px-3 py-1 rounded-lg text-sm font-medium">
-                {statusFilter === 'reserved' && 'Reservados Hoy'}
-                {statusFilter === 'underMaintenance' && 'En Mantenimiento'}
-                {statusFilter === 'maintenanceRequired' && 'Requiere Mantenimiento'}
-                {statusFilter === 'outOfService' && 'Fuera de Servicio'}
-                {statusFilter === 'maintenanceCompleted' && 'Disponibles'}
-              </span>
+          <div className="mb-6 bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <span className="text-white/70 text-sm mr-2">Filtrando por:</span>
+                <span className="bg-white/20 text-white px-3 py-1 rounded-lg text-sm font-medium">
+                  {statusFilter === 'reserved' && `Reservados (${statusCounts.reserved})`}
+                  {statusFilter === 'underMaintenance' && 'En Mantenimiento'}
+                  {statusFilter === 'maintenanceRequired' && 'Requiere Mantenimiento'}
+                  {statusFilter === 'outOfService' && 'Fuera de Servicio'}
+                  {statusFilter === 'maintenanceCompleted' && 'Disponibles'}
+                </span>
+              </div>
+              <button
+                onClick={() => handleStatusFilterClick('all')}
+                className="text-white/60 hover:text-white transition-colors duration-300 text-sm bg-white/10 px-3 py-1 rounded-lg hover:bg-white/20"
+              >
+                Limpiar filtro
+              </button>
             </div>
-            <button
-              onClick={() => handleStatusFilterClick('all')}
-              className="text-white/60 hover:text-white transition-colors duration-300 text-sm bg-white/10 px-3 py-1 rounded-lg hover:bg-white/20"
-            >
-              Limpiar filtro
-            </button>
+
+            {/* Mostrar filtro de fechas solo para reservados */}
+            {statusFilter === 'reserved' && (
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                <div className="flex items-center gap-2">
+                  <label className="text-white/80 text-sm font-medium whitespace-nowrap">
+                    Desde:
+                  </label>
+                  <input
+                    type="date"
+                    value={reservationDateFrom}
+                    onChange={(e) => handleReservationDateFromChange(e.target.value)}
+                    className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-white/80 text-sm font-medium whitespace-nowrap">
+                    Hasta:
+                  </label>
+                  <input
+                    type="date"
+                    value={reservationDateTo}
+                    onChange={(e) => handleReservationDateToChange(e.target.value)}
+                    className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    const today = new Date().toISOString().split('T')[0];
+                    setReservationDateFrom(today);
+                    setReservationDateTo(today);
+                  }}
+                  className="text-green-300 hover:text-green-100 transition-colors duration-300 text-sm bg-green-500/20 px-3 py-2 rounded-lg hover:bg-green-500/30 whitespace-nowrap"
+                >
+                  Hoy
+                </button>
+              </div>
+            )}
           </div>
         )}
-
         {/* Lista de vehículos o mensaje vacío */}
         {filteredVehicles.length === 0 ? (
           <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-12 text-center">
@@ -243,11 +296,18 @@ const VehicleManagementPage = () => {
               }
             </h3>
             <p className="text-white/70 text-sm mb-8">
-              {statusFilter !== 'all' ?
-                `No hay vehículos con estado "${statusFilter}"` :
-                searchTerm || filterType !== 'all' ?
-                  'Intenta ajustar tus filtros de búsqueda' :
-                  'Comienza agregando tu primer vehículo a la flota premium'
+              {statusFilter === 'reserved' ?
+                'No hay vehículos reservados para hoy' :
+                statusFilter !== 'all' ?
+                  `No hay vehículos con estado "${statusFilter === 'underMaintenance' ? 'En Mantenimiento' :
+                    statusFilter === 'maintenanceRequired' ? 'Requiere Mantenimiento' :
+                      statusFilter === 'outOfService' ? 'Fuera de Servicio' :
+                        statusFilter === 'maintenanceCompleted' ? 'Disponibles' :
+                          statusFilter
+                  }"` :
+                  searchTerm || filterType !== 'all' ?
+                    'Intenta ajustar tus filtros de búsqueda' :
+                    'Comienza agregando tu primer vehículo a la flota premium'
               }
             </p>
             {(!searchTerm && filterType === 'all' && statusFilter === 'all' && hasAdminRole) && (
@@ -262,15 +322,25 @@ const VehicleManagementPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredVehicles.map((vehicle) => (
-              <VehicleCard
-                key={vehicle.id}
-                vehicle={vehicle}
-                onEdit={handleEditVehicle}
-                onRefresh={handleRefresh}
-                isAdmin={hasAdminRole}
-              />
-            ))}
+            {filteredVehicles.map((vehicle) => {
+              // Obtener el estado efectivo del vehículo
+              const effectiveStatus = getEffectiveVehicleStatus(vehicle);
+              const isReserved = effectiveStatus === 'reserved';
+
+              return (
+                <VehicleCard
+                  key={vehicle.id}
+                  vehicle={{
+                    ...vehicle,
+                    effectiveStatus, // Pasar el estado efectivo
+                    isReserved // Indicador de si está reservado
+                  }}
+                  onEdit={handleEditVehicle}
+                  onRefresh={handleRefresh}
+                  isAdmin={hasAdminRole}
+                />
+              );
+            })}
           </div>
         )}
 

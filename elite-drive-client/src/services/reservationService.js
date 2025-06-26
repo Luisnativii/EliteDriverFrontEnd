@@ -189,7 +189,9 @@ static async isVehicleReservedToday(vehicleId) {
     try {
         const todayReservations = await this.getTodayReservations();
         return todayReservations.some(reservation => 
-            reservation.vehicle?.id === vehicleId
+            reservation.vehicle?.id === vehicleId  ||
+                reservation.vehicleId === vehicleId ||
+                reservation.vehicle_id === vehicleId
         );
     } catch (error) {
         console.error('Error al verificar reservación del vehículo:', error);
@@ -202,13 +204,67 @@ static async getReservedVehicleIdsToday() {
     try {
         const todayReservations = await this.getTodayReservations();
         return todayReservations
-            .map(reservation => reservation.vehicle?.id)
+            .map(reservation => reservation.vehicle?.id || 
+                    reservation.vehicleId || 
+                    reservation.vehicle_id)
             .filter(Boolean); // Filtrar valores null/undefined
     } catch (error) {
         console.error('Error al obtener IDs de vehículos reservados:', error);
         return [];
     }
 }
+
+    static async getReservedVehicleIdsInRange(startDate, endDate) {
+        try {
+            console.log('🔍 Obteniendo IDs de vehículos reservados entre:', startDate, 'y', endDate);
+            
+            const activeReservations = await this.getActiveReservationsInRange(startDate, endDate);
+            const reservedIds = activeReservations
+                .map(reservation => {
+                    const vehicleId = reservation.vehicle?.id;
+                    console.log('🚗 Reservación encontrada:', {
+                        id: reservation.id,
+                        vehicleId,
+                        vehicleName: reservation.vehicle?.name,
+                        startDate: reservation.startDate,
+                        endDate: reservation.endDate
+                    });
+                    return vehicleId;
+                })
+                .filter(Boolean);
+            
+            // Eliminar duplicados si un vehículo tiene múltiples reservaciones
+            const uniqueReservedIds = [...new Set(reservedIds)];
+            
+            console.log('✅ IDs únicos de vehículos reservados:', uniqueReservedIds);
+            return uniqueReservedIds;
+        } catch (error) {
+            console.error('❌ Error al obtener vehículos reservados en el rango:', error);
+            return [];
+        }
+    }
+
+    static async getAllReservations() {
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        const url = `${API_BASE_URL}${API_ENDPOINTS.RESERVATIONS.GET_ALL || '/reservations'}`;
+        
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` })
+            }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'Error al obtener todas las reservas');
+        }
+
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : [];
+        return data;
+    }
+
 
 }
 

@@ -136,21 +136,54 @@ const transformVehicleForUpdate = (vehicleData) => {
     }
   }
   
-  // Validar campos requeridos
-  const pricePerDay = parseFloat(vehicleData.pricePerDay || vehicleData.price);
-  const kilometers = parseInt(vehicleData.kilometers);
+  // Crear objeto de actualización solo con los campos que se están actualizando
+  const updateData = {};
   
-  if (isNaN(pricePerDay) || isNaN(kilometers)) {
-    throw new Error('Precio por día y kilómetros son requeridos para la actualización');
+  // Solo agregar campos si están presentes en vehicleData
+  if (vehicleData.hasOwnProperty('pricePerDay') || vehicleData.hasOwnProperty('price')) {
+    const pricePerDay = parseFloat(vehicleData.pricePerDay || vehicleData.price);
+    if (!isNaN(pricePerDay)) {
+      updateData.pricePerDay = pricePerDay;
+    }
   }
   
-  const updateData = {
-    pricePerDay,
-    kilometers,
-    features: processedFeatures,
-    mainImageUrl: vehicleData.mainImageUrl || null,
-    imageUrls: processedImageUrls
-  };
+  if (vehicleData.hasOwnProperty('kilometers')) {
+    const kilometers = parseInt(vehicleData.kilometers);
+    if (!isNaN(kilometers)) {
+      updateData.kilometers = kilometers;
+    }
+  }
+  
+  if (vehicleData.hasOwnProperty('kmForMaintenance')) {
+    const kmForMaintenance = parseInt(vehicleData.kmForMaintenance);
+    if (!isNaN(kmForMaintenance)) {
+      updateData.kmForMaintenance = kmForMaintenance;
+    }
+  }
+  
+  // Agregar features si están presentes
+  if (vehicleData.hasOwnProperty('features')) {
+    updateData.features = processedFeatures;
+  }
+  
+  // Agregar URLs de imágenes si están presentes
+  if (vehicleData.hasOwnProperty('mainImageUrl')) {
+    updateData.mainImageUrl = vehicleData.mainImageUrl || null;
+  }
+  
+  if (vehicleData.hasOwnProperty('imageUrls')) {
+    updateData.imageUrls = processedImageUrls;
+  }
+  
+  // Agregar estado si está presente
+  if (vehicleData.hasOwnProperty('status')) {
+    updateData.status = vehicleData.status;
+  }
+  
+  // Verificar que al menos hay un campo para actualizar
+  if (Object.keys(updateData).length === 0) {
+    throw new Error('No se proporcionaron campos válidos para actualizar');
+  }
   
   return updateData;
 };
@@ -303,7 +336,7 @@ export const updateVehicle = async (id, updateData) => {
       
       switch (status) {
         case 400:
-          errorMessage = data?.message || 'Datos inválidos. Solo se pueden actualizar precio, kilómetros y características.';
+          errorMessage = data?.message || 'Datos inválidos para la actualización.';
           break;
         case 401:
           errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
