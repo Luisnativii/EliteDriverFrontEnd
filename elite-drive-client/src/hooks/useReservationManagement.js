@@ -9,6 +9,7 @@ export const useReservationManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [operationLoading, setOperationLoading] = useState(false);
+  
 
   // Estados de filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,13 +34,13 @@ export const useReservationManagement = () => {
 
       // Usar getAllReservations si existe en el servicio
       const reservationsData = await ReservationService.getAllReservations();
-      
+
       // Transformar datos si es necesario
       const transformedReservations = reservationsData.map(reservation => ({
         id: reservation.id,
         startDate: reservation.startDate,
         endDate: reservation.endDate,
-        totalPrice: reservation.totalPrice,
+        totalPrice: reservation.totalPrice || 0,
         status: reservation.status || 'confirmado',
         createdAt: reservation.createdAt || new Date().toISOString(),
         user: {
@@ -53,7 +54,7 @@ export const useReservationManagement = () => {
           name: reservation.vehicle?.name || 'Vehículo no disponible',
           brand: reservation.vehicle?.brand || 'N/A',
           model: reservation.vehicle?.model || 'N/A',
-          type: reservation.vehicle?.vehicleType?.type || reservation.vehicle?.type || 'N/A',
+          type: reservation.vehicle?.vehicleType?.type || reservation.vehicle?.type || reservation.vehicleType || 'N/A',
           capacity: reservation.vehicle?.capacity || 0
         }
       }));
@@ -83,13 +84,15 @@ export const useReservationManagement = () => {
     // Filtro por búsqueda
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(reservation => 
+      filtered = filtered.filter(reservation =>
         reservation.user.name.toLowerCase().includes(term) ||
         reservation.user.email.toLowerCase().includes(term) ||
         reservation.user.dui.toLowerCase().includes(term) ||
         reservation.vehicle.name.toLowerCase().includes(term) ||
         reservation.vehicle.brand.toLowerCase().includes(term) ||
         reservation.vehicle.model.toLowerCase().includes(term) ||
+        reservation.status.toLowerCase().includes(term) ||
+        reservation.vehicle.type.toLowerCase().includes(term) ||
         reservation.id.toString().includes(term) ||
         reservation.vehicle.id.toString().includes(term)
       );
@@ -97,12 +100,23 @@ export const useReservationManagement = () => {
 
     // Filtro por estado
     if (filterStatus !== 'all') {
-      filtered = filtered.filter(reservation => reservation.status === filterStatus);
+      filtered = filtered.filter(reservation => {
+        const now = new Date();
+        const start = new Date(reservation.startDate);
+        const end = new Date(reservation.endDate);
+
+        const derivedStatus = start > now
+          ? 'próxima'
+          : (start <= now && end >= now ? 'activa' : 'completada');
+
+        return derivedStatus === filterStatus;
+      });
     }
+
 
     // Filtro por tipo de vehículo
     if (filterVehicleType !== 'all') {
-      filtered = filtered.filter(reservation => 
+      filtered = filtered.filter(reservation =>
         reservation.vehicle.type.toLowerCase() === filterVehicleType.toLowerCase()
       );
     }
@@ -111,11 +125,11 @@ export const useReservationManagement = () => {
     if (dateFilter !== 'all') {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
+
       filtered = filtered.filter(reservation => {
         const startDate = new Date(reservation.startDate);
         const endDate = new Date(reservation.endDate);
-        
+
         switch (dateFilter) {
           case 'today':
             return startDate <= now && endDate >= today;
@@ -138,7 +152,7 @@ export const useReservationManagement = () => {
     // Ordenamiento
     filtered.sort((a, b) => {
       let aValue, bValue;
-      
+
       switch (sortBy) {
         case 'startDate':
           aValue = new Date(a.startDate);
@@ -187,9 +201,18 @@ export const useReservationManagement = () => {
 
   // Obtener estados únicos
   const uniqueStatuses = useMemo(() => {
-    const statuses = reservations.map(r => r.status).filter(Boolean);
+    const now = new Date();
+    const statuses = reservations.map(r => {
+      const start = new Date(r.startDate);
+      const end = new Date(r.endDate);
+      if (start > now) return 'próxima';
+      if (start <= now && end >= now) return 'activa';
+      if (end < now) return 'completada';
+      return 'desconocida';
+    });
     return [...new Set(statuses)];
   }, [reservations]);
+
 
   // Estadísticas
   const reservationStats = useMemo(() => {
@@ -200,13 +223,13 @@ export const useReservationManagement = () => {
       const endDate = new Date(r.endDate);
       return startDate <= now && endDate >= now;
     }).length;
-    
+
     const upcoming = reservations.filter(r => {
       const now = new Date();
       const startDate = new Date(r.startDate);
       return startDate > now;
     }).length;
-    
+
     const completed = reservations.filter(r => {
       const now = new Date();
       const endDate = new Date(r.endDate);
@@ -229,14 +252,14 @@ export const useReservationManagement = () => {
     try {
       setOperationLoading(true);
       await ReservationService.deleteReservation(reservationId);
-      
+
       // Actualizar la lista local
       setReservations(prev => prev.filter(r => r.id !== reservationId));
-      
+
       // Cerrar dialog
       setShowConfirmDialog(false);
       setReservationToCancel(null);
-      
+
     } catch (err) {
       setError(err.message || 'Error al cancelar la reserva');
     } finally {
@@ -268,17 +291,12 @@ export const useReservationManagement = () => {
     fetchReservations();
   }, [fetchReservations]);
 
-  const handleViewReservation = useCallback((reservation) => {
-  // Implementar modal o navegación a página de detalles
-  console.log('Ver detalles de reserva:', reservation);
-  // Aquí podrías abrir un modal con los detalles completos
-  // o navegar a una página de detalles específica
-}, []);
+  
 
   // Función para obtener mensaje de confirmación
   const getConfirmationMessage = useCallback(() => {
     if (!reservationToCancel) return '';
-    
+
     return `¿Estás seguro de que deseas cancelar la reserva de ${reservationToCancel.user.name} para el vehículo ${reservationToCancel.vehicle.name}?`;
   }, [reservationToCancel]);
 
@@ -302,10 +320,10 @@ export const useReservationManagement = () => {
   // Función para obtener color del estado
   const getStatusColor = useCallback((status) => {
     const colors = {
-      'active': 'text-green-400 bg-green-500/20',
-      'completed': 'text-blue-400 bg-blue-500/20', 
-      'cancelled': 'text-red-400 bg-red-500/20',
-      'pending': 'text-yellow-400 bg-yellow-500/20'
+      'Próxima': 'text-yellow-400 bg-yellow-500/20',
+      'Activa': 'text-green-400 bg-green-500/20',
+      'Completada': 'text-blue-400 bg-blue-500/20',
+
     };
     return colors[status] || 'text-gray-400 bg-gray-500/20';
   }, []);
@@ -313,10 +331,9 @@ export const useReservationManagement = () => {
   // Función para obtener etiqueta del estado
   const getStatusLabel = useCallback((status) => {
     const labels = {
-      'active': 'Activa',
-      'completed': 'Completada',
-      'cancelled': 'Cancelada',
-      'pending': 'Pendiente'
+      'activa': 'Activa',
+      'próxima': 'Próxima',
+      'completada': 'Completada',
     };
     return labels[status] || 'Desconocido';
   }, []);
@@ -360,6 +377,6 @@ export const useReservationManagement = () => {
     formatPrice,
     getStatusColor,
     getStatusLabel,
-    setError
+    setError,
   };
 };

@@ -1,10 +1,12 @@
 import React from 'react';
+import { useState } from 'react';
 import { useReservationManagement } from '../../hooks/useReservationManagement';
+import ReservationDetailModal from '@/components/reservation/ReservationDetailModal';
 import LoadingSpinner from '../../components/layout/LoadingSpinner';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
-import { 
-  Search, 
-  AlertCircle, 
+import {
+  Search,
+  AlertCircle,
   RefreshCw,
   Filter,
   Calendar,
@@ -18,6 +20,7 @@ import {
 } from 'lucide-react';
 
 const ReservationManagementPage = () => {
+
   const {
     // Estados
     loading,
@@ -34,12 +37,12 @@ const ReservationManagementPage = () => {
     sortBy,
     sortOrder,
     showConfirmDialog,
-    
+
     // Datos computados
     uniqueVehicleTypes,
     uniqueStatuses,
     reservationStats,
-    
+
     // Handlers
     setSearchTerm,
     setFilterStatus,
@@ -58,6 +61,13 @@ const ReservationManagementPage = () => {
     getStatusLabel,
     setError
   } = useReservationManagement();
+  const [selectedReservation, setSelectedReservation] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
+  const handleViewReservation = (reservation) => {
+    setSelectedReservation(reservation);
+    setShowDetailModal(true);
+  };
 
   // Mostrar loading mientras se cargan auth y reservas
   if (loading || authLoading) {
@@ -124,6 +134,18 @@ const ReservationManagementPage = () => {
       setSortOrder('desc');
     }
   };
+
+  const getDerivedStatus = (reservation) => {
+    const now = new Date();
+    const start = new Date(reservation.startDate);
+    const end = new Date(reservation.endDate);
+
+    if (start > now) return 'Próxima';
+    if (start <= now && end >= now) return 'Activa';
+    if (end < now) return 'Completada';
+    return 'desconocida';
+  };
+
 
   return (
     <div className="min-h-screen bg-neutral-900">
@@ -200,7 +222,6 @@ const ReservationManagementPage = () => {
                 <p className="text-white/70 text-sm">Ingresos Total</p>
                 <p className="text-2xl font-bold text-emerald-400">{formatPrice(reservationStats.totalRevenue)}</p>
               </div>
-              <DollarSign className="w-8 h-8 text-emerald-400" />
             </div>
           </div>
         </div>
@@ -426,22 +447,10 @@ const ReservationManagementPage = () => {
                         <div className="text-sm text-white">
                           {formatDate(reservation.startDate)}
                         </div>
-                        <div className="text-xs text-white/60">
-                          {new Date(reservation.startDate).toLocaleTimeString('es-ES', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-white">
                           {formatDate(reservation.endDate)}
-                        </div>
-                        <div className="text-xs text-white/60">
-                          {new Date(reservation.endDate).toLocaleTimeString('es-ES', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -459,9 +468,15 @@ const ReservationManagementPage = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(reservation.status)}`}>
-                          {getStatusLabel(reservation.status)}
-                        </span>
+                        {(() => {
+                          const status = getDerivedStatus(reservation);
+                          return (
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </span>
+                          );
+                        })()}
+
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center space-x-2">
@@ -472,7 +487,7 @@ const ReservationManagementPage = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          {(reservation.status === 'active' || reservation.status === 'pending') && (
+                          {['Activa', 'Próxima'].includes(getDerivedStatus(reservation)) && (
                             <button
                               onClick={() => initiateCancel(reservation)}
                               disabled={operationLoading}
@@ -482,6 +497,7 @@ const ReservationManagementPage = () => {
                               <Trash2 className="w-4 h-4" />
                             </button>
                           )}
+
                         </div>
                       </td>
                     </tr>
@@ -520,6 +536,15 @@ const ReservationManagementPage = () => {
           loading={operationLoading}
         />
       </div>
+
+      <ReservationDetailModal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        reservation={selectedReservation}
+        formatDate={formatDate}
+        formatPrice={formatPrice}
+      />
+
     </div>
   );
 };
