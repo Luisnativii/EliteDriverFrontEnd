@@ -106,20 +106,6 @@ const LoginForm = ({ onRegisterClick }) => {
           />
         </div>
 
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center text-white/70">
-            <input type="checkbox" className="mr-2 rounded" />
-            Recordarme
-          </label>
-          <button
-            type="button"
-            className="text-red-400 hover:text-red-300 transition-colors"
-            disabled={isLoading}
-          >
-            ¿Olvidaste tu contraseña?
-          </button>
-        </div>
-
         <button
           type="submit"
           disabled={isLoading}

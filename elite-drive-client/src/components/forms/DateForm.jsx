@@ -17,7 +17,7 @@ const DateForm = ({ variant = 'default', onSearch }) => {
     // Estilos para la variante de home (glassmorphism)
     const homeStyles = {
         container: `
-            bg-white/10 backdrop-blur-md p-6 rounded-2xl 
+            bg-white/10 backdrop-blur-md py-6 px-8 rounded-3xl 
             shadow-2xl border border-white/20 min-w-[700px] 
             hover:bg-white/15 transition-all duration-300
         `,
@@ -31,7 +31,7 @@ const DateForm = ({ variant = 'default', onSearch }) => {
             hover:bg-white/25
         `,
         button: `
-            w-full bg-gradient-to-r from-black to-neutral-500 
+            w-full bg-gradient-to-r from-black to-neutral-700 
             hover:from-black hover:to-white
             text-white font-semibold py-3 px-6 rounded-lg
             transition-all duration-200 transform hover:scale-105
@@ -46,10 +46,10 @@ const DateForm = ({ variant = 'default', onSearch }) => {
         title: "text-white text-sm font-medium",
         label: "text-white font-medium text-xs block mb-1",
         input: `
-            border border-gray-300 rounded-lg px-3 py-2 text-sm
+            border border-gray-300 px-0 rounded-lg px-3 py-2 text-sm
             focus:outline-none focus:ring-2 focus:ring-neutral-500 
             focus:border-transparent transition-all duration-200
-            w-32
+            w-38
         `,
         button: `
             bg-neutral-800 hover:bg-neutral-600

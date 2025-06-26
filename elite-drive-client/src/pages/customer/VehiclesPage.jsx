@@ -6,15 +6,12 @@ import DateForm from '../../components/forms/DateForm';
 import ReservationService from '../../services/reservationService';
 import { useAuth } from '../../hooks/useAuth';
 
-
-
 // Componente para cada tarjeta de vehículo
 const VehicleCard = ({ vehicle, isFiltered = false }) => {
     const { user } = useAuth();
-
-
     const navigate = useNavigate();
     const { startDate, endDate } = useDateContext();
+    
     const handleReservation = () => {
         if (!user) {
             navigate('/login', {
@@ -25,14 +22,12 @@ const VehicleCard = ({ vehicle, isFiltered = false }) => {
         }
     };
 
-
     // Calcular precio si hay fechas seleccionadas
     const calculation = startDate && endDate
         ? ReservationService.calculateTotalPrice(startDate, endDate, vehicle.price)
         : null;
 
     return (
-        //vehicle card
         <div className={`bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-xl transition-all duration-300 hover:scale-105 hover:bg-white/15 ${isFiltered ? 'ring-2 ring-white/30' : ''}`}>
             <div className="w-full h-40 bg-gray-200 rounded-lg mb-4 overflow-hidden">
                 <img
@@ -61,7 +56,7 @@ const VehicleCard = ({ vehicle, isFiltered = false }) => {
                 )}
                 <button
                     onClick={handleReservation}
-                    className="cursor-pointer bg-gradient-to-r from-neutral-700 to-neutral-900 text-white px-4 py-2 rounded-full hover:from-neutral-600 hover:to-neutral-800 transition-all duration-300 shadow-md">
+                    className="cursor-pointer bg-gradient-to-r from-black to-neutral-900 text-white px-4 py-2 rounded-full hover:from-neutral-600 hover:to-neutral-800 transition-all duration-300 shadow-md">
                     Alquilar
                 </button>
             </div>
@@ -70,22 +65,28 @@ const VehicleCard = ({ vehicle, isFiltered = false }) => {
 };
 
 const VehiclesPage = () => {
-
     const { vehicles, loading, error } = useVehicles();
     const { startDate, endDate } = useDateContext();
     const [filteredType, setFilteredType] = useState('all');
-    // Definir si hay filtros de fecha activos
-    const hasDateFilter = startDate && endDate;
     const [busyVehicleIds, setBusyVehicleIds] = useState([]);
 
-    let filteredVehicles = filteredType === 'all'
-        ? vehicles
-        : vehicles.filter(v => v.type === filteredType);
+    // Definir si hay filtros de fecha activos
+    const hasDateFilter = startDate && endDate;
 
-    // Si hay fechas seleccionadas, quitamos los vehículos ocupados
-    if (startDate && endDate && busyVehicleIds.length > 0) {
-        filteredVehicles = filteredVehicles.filter(v => !busyVehicleIds.includes(v.id));
-    }
+    // Filtrar vehículos disponibles
+    let filteredVehicles = vehicles.filter(vehicle => {
+        // Solo mostrar vehículos con estado "maintenanceCompleted" o sin estado definido
+        const vehicleStatus = vehicle.status || 'maintenanceCompleted';
+        const isMaintenanceCompleted = vehicleStatus === 'maintenanceCompleted';
+        
+        // Filtrar por tipo si no es 'all'
+        const typeMatch = filteredType === 'all' || vehicle.type === filteredType;
+        
+        // No mostrar vehículos ocupados si hay fechas seleccionadas
+        const isNotBusy = !hasDateFilter || !busyVehicleIds.includes(vehicle.id);
+        
+        return isMaintenanceCompleted && typeMatch && isNotBusy;
+    });
 
     useEffect(() => {
         if (startDate && endDate) {
@@ -112,10 +113,11 @@ const VehiclesPage = () => {
                     setBusyVehicleIds(busyIds);
                 })
                 .catch(console.error);
+        } else {
+            // Si no hay fechas seleccionadas, limpiar la lista de vehículos ocupados
+            setBusyVehicleIds([]);
         }
     }, [startDate, endDate]);
-
-
 
     // Manejo de estados de carga y error
     if (loading) {
@@ -145,21 +147,17 @@ const VehiclesPage = () => {
         );
     }
 
-
-
-
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-neutral-800 via-neutral-900 to-black text-white px-6 py-25 ">
-            <h1 className="text-3xl font-bold mb-6 text-white">Vehículos Disponibles</h1>
+            <h1 className="text-2xl font-bold mb-6 text-white">Vehículos Disponibles</h1>
 
             {/* Filtros */}
-            <div className="flex flex-wrap gap-4 mb-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-lg">
+            <div className="flex flex-wrap gap-4 mb-8 bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-lg">
                 {['all', 'Sedan', 'SUV', 'PickUp'].map(type => (
                     <button
                         key={type}
                         onClick={() => setFilteredType(type)}
-                        className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${filteredType === type
+                        className={`px-6 py-2 rounded-3xl text-sm font-semibold transition-all duration-300 ${filteredType === type
                             ? 'bg-white text-neutral-900 shadow-md'
                             : 'bg-white/10 text-white hover:bg-white/20 border border-white/30'
                             }`}
@@ -176,10 +174,32 @@ const VehiclesPage = () => {
 
             {/* Mostrar información de filtros activos */}
             {hasDateFilter && (
-                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="mb-6 p-6 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-blue-800">
                         📅 Mostrando disponibilidad del {new Date(startDate).toLocaleDateString()} al {new Date(endDate).toLocaleDateString()}
                     </p>
+                </div>
+            )}
+
+            {/* Mensaje cuando no hay vehículos disponibles */}
+            {filteredVehicles.length === 0 && (
+                <div className="text-center py-12">
+                    <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 shadow-xl">
+                        <h3 className="text-xl font-semibold text-white mb-4">
+                            No hay vehículos disponibles
+                        </h3>
+                        <p className="text-white/70 mb-4">
+                            {hasDateFilter 
+                                ? 'No hay vehículos disponibles para las fechas seleccionadas.' 
+                                : 'Actualmente no hay vehículos disponibles para alquilar.'
+                            }
+                        </p>
+                        {hasDateFilter && (
+                            <p className="text-white/60 text-sm">
+                                Intenta seleccionar otras fechas o contacta con nosotros para más opciones.
+                            </p>
+                        )}
+                    </div>
                 </div>
             )}
 
@@ -195,7 +215,6 @@ const VehiclesPage = () => {
             </div>
         </div>
     );
-
-}
+};
 
 export default VehiclesPage;

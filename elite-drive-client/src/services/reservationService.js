@@ -158,6 +158,114 @@ class ReservationService {
     return { success: true, data };
 }
 
+// Función para obtener reservaciones activas de hoy
+static async getTodayReservations() {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    try {
+        const reservations = await this.getReservationsByDateRange(todayStr, todayStr);
+        return reservations.filter(reservation => {
+            // Filtrar solo las reservaciones que están activas hoy
+            const startDate = new Date(reservation.startDate);
+            const endDate = new Date(reservation.endDate);
+            const currentDate = new Date();
+            
+            // Normalizar las fechas para comparación (solo fecha, sin hora)
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+            currentDate.setHours(0, 0, 0, 0);
+            
+            return currentDate >= startDate && currentDate <= endDate;
+        });
+    } catch (error) {
+        console.error('Error al obtener reservaciones de hoy:', error);
+        return [];
+    }
+}
+
+// Función para verificar si un vehículo está reservado hoy
+static async isVehicleReservedToday(vehicleId) {
+    try {
+        const todayReservations = await this.getTodayReservations();
+        return todayReservations.some(reservation => 
+            reservation.vehicle?.id === vehicleId  ||
+                reservation.vehicleId === vehicleId ||
+                reservation.vehicle_id === vehicleId
+        );
+    } catch (error) {
+        console.error('Error al verificar reservación del vehículo:', error);
+        return false;
+    }
+}
+
+// Función para obtener todos los IDs de vehículos reservados hoy
+static async getReservedVehicleIdsToday() {
+    try {
+        const todayReservations = await this.getTodayReservations();
+        return todayReservations
+            .map(reservation => reservation.vehicle?.id || 
+                    reservation.vehicleId || 
+                    reservation.vehicle_id)
+            .filter(Boolean); // Filtrar valores null/undefined
+    } catch (error) {
+        console.error('Error al obtener IDs de vehículos reservados:', error);
+        return [];
+    }
+}
+
+    static async getReservedVehicleIdsInRange(startDate, endDate) {
+        try {
+            console.log('🔍 Obteniendo IDs de vehículos reservados entre:', startDate, 'y', endDate);
+            
+            const activeReservations = await this.getActiveReservationsInRange(startDate, endDate);
+            const reservedIds = activeReservations
+                .map(reservation => {
+                    const vehicleId = reservation.vehicle?.id;
+                    console.log('🚗 Reservación encontrada:', {
+                        id: reservation.id,
+                        vehicleId,
+                        vehicleName: reservation.vehicle?.name,
+                        startDate: reservation.startDate,
+                        endDate: reservation.endDate
+                    });
+                    return vehicleId;
+                })
+                .filter(Boolean);
+            
+            // Eliminar duplicados si un vehículo tiene múltiples reservaciones
+            const uniqueReservedIds = [...new Set(reservedIds)];
+            
+            console.log('✅ IDs únicos de vehículos reservados:', uniqueReservedIds);
+            return uniqueReservedIds;
+        } catch (error) {
+            console.error('❌ Error al obtener vehículos reservados en el rango:', error);
+            return [];
+        }
+    }
+
+    static async getAllReservations() {
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        const url = `${API_BASE_URL}${API_ENDPOINTS.RESERVATIONS.GET_ALL || '/reservations'}`;
+        
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` })
+            }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'Error al obtener todas las reservas');
+        }
+
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : [];
+        return data;
+    }
+
+
 }
 
 export default ReservationService;

@@ -39,30 +39,6 @@ const Header = ({ toggleSidebar, showSidebar }) => {
             
           </div>
         </div>
-
-        {/* Right side - Search and notifications */}
-        <div className="flex items-center gap-4">
-          {/* Search button */}
-          <button className="
-            p-1 rounded-xl bg-transparent hover:bg-white/10
-            border-none transition-all duration-200 
-            hover:scale-105 active:scale-95
-          ">
-            <Search size={18} className="text-white" />
-          </button>
-
-          {/* Notifications */}
-          <button className="
-            p-1 rounded-xl bg-transparent hover:bg-white/10
-            border-none transition-all duration-200 
-            hover:scale-105 active:scale-95 relative
-          ">
-            <Bell size={18} className="text-white" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-black/20"></span>
-          </button>
-
-          
-        </div>
       </div>
     </header>
   );

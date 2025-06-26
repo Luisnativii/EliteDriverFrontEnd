@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useVehicleOperations } from '../../hooks/useVehicles';
-import { 
-  Edit2, 
-  Trash2, 
-  Users, 
-  MapPin, 
-  DollarSign, 
+import {
+  Edit2,
+  Trash2,
+  Users,
+  MapPin,
+  DollarSign,
   Car,
   AlertTriangle,
   CheckCircle,
-  Loader2
+  Wrench
 } from 'lucide-react';
 
 const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
@@ -18,11 +18,11 @@ const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEdit = () => {
-  if (onEdit) {
-    // Pasar el vehículo y indicar explícitamente que está en modo edición
-    onEdit(vehicle, true); // Segundo parámetro indica isEditing = true
-  }
-};
+    if (onEdit) {
+      // Pasar el vehículo y indicar explícitamente que está en modo edición
+      onEdit(vehicle, true); // Segundo parámetro indica isEditing = true
+    }
+  };
 
   const handleDeleteClick = () => {
     setShowDeleteConfirm(true);
@@ -31,17 +31,17 @@ const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
   const handleDeleteConfirm = async () => {
     try {
       setIsDeleting(true);
-      
+
       await deleteVehicle(vehicle.id, () => {
         console.log(`✅ Vehículo ${vehicle.name} eliminado exitosamente`);
         setShowDeleteConfirm(false);
-        
+
         // Refrescar la lista de vehículos
         if (onRefresh) {
           onRefresh();
         }
       });
-      
+
     } catch (error) {
       console.error('Error eliminando vehículo:', error);
       alert(error.message || 'Error al eliminar el vehículo');
@@ -69,6 +69,74 @@ const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
     return new Intl.NumberFormat('es-US').format(km);
   };
 
+  const getStatusConfig = (status) => {
+  switch (status) {
+    case 'available':
+      return {
+        text: 'Disponible',
+        className: 'bg-green-100 text-green-800 border-green-200',
+        iconColor: 'text-green-600',
+        icon: CheckCircle
+      };
+    case 'reserved':
+      return {
+        text: 'Reservado',
+        className: 'bg-blue-100 text-blue-800 border-blue-200',
+        iconColor: 'text-blue-600',
+        icon: Users
+      };
+    case 'underMaintenance':
+      return {
+        text: 'En mantenimiento',
+        className: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        iconColor: 'text-yellow-600',
+        icon: Wrench
+      };
+    case 'maintenanceRequired':
+      return {
+        text: 'Requiere mantenimiento',
+        className: 'bg-orange-100 text-orange-800 border-orange-200',
+        iconColor: 'text-orange-600',
+        icon: AlertTriangle
+      };
+    case 'maintenanceCompleted':
+      return {
+        text: 'Mantenimiento al día',
+        className: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        iconColor: 'text-emerald-600',
+        icon: CheckCircle
+      };
+    case 'outOfService':
+      return {
+        text: 'Fuera de Servicio',
+        className: 'bg-red-100 text-red-800 border-red-200',
+        iconColor: 'text-red-600',
+        icon: AlertTriangle
+      };
+    default:
+      return {
+        text: 'Estado Desconocido',
+        className: 'bg-gray-100 text-gray-800 border-gray-200',
+        iconColor: 'text-gray-600',
+        icon: AlertTriangle
+      };
+  }
+};
+  
+  const renderStatus = () => {
+    if (!vehicle.status) return null;
+    const statusConfig = getStatusConfig(vehicle.status);
+    const StatusIcon = statusConfig.icon;
+
+    return (
+      <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusConfig.className}`}>
+        <StatusIcon className={`w-3 h-3 mr-1 ${statusConfig.iconColor} ${vehicle.status === 'underMaintenance' ? '' : ''}`} />
+        {statusConfig.text}
+      </div>
+    );
+  };
+
+
   return (
     <>
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
@@ -94,20 +162,24 @@ const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
         <div className="p-6">
           {/* Header con nombre y tipo */}
           <div className="flex items-start justify-between mb-3">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                {vehicle.name}
-              </h3>
-              <p className="text-sm text-gray-500">
-                {vehicle.brand} {vehicle.model}
-              </p>
-            </div>
-            {vehicle.type && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {vehicle.type}
-              </span>
-            )}
-          </div>
+  <div className="flex-1">
+    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+      {vehicle.name}
+    </h3>
+    <p className="text-sm text-gray-500">
+      {vehicle.brand} {vehicle.model}
+    </p>
+  </div>
+  <div className="flex flex-col gap-2 items-end">
+    {vehicle.type && (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+        {vehicle.type}
+      </span>
+    )}
+    {/* Status del vehículo */}
+    {renderStatus()}
+  </div>
+</div>
 
           {/* Información del vehículo */}
           <div className="space-y-2 mb-4">
@@ -185,9 +257,9 @@ const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
                 Confirmar Eliminación
               </h3>
             </div>
-            
+
             <p className="text-gray-600 mb-6">
-              ¿Estás seguro de que deseas eliminar el vehículo <strong>{vehicle.name}</strong>? 
+              ¿Estás seguro de que deseas eliminar el vehículo <strong>{vehicle.name}</strong>?
               Esta acción no se puede deshacer.
             </p>
 
