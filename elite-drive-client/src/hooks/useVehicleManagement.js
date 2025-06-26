@@ -14,7 +14,7 @@ export const useVehicleManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
-    
+
     // Estados para reservaciones (usando el mismo patrón que ReservationManagementPage)
     const [reservations, setReservations] = useState([]);
     const [reservationsLoading, setReservationsLoading] = useState(false);
@@ -39,7 +39,7 @@ export const useVehicleManagement = () => {
 
             // Usar getAllReservations igual que en ReservationManagementPage
             const reservationsData = await ReservationService.getAllReservations();
-            
+
             // Transformar datos igual que en ReservationManagementPage
             const transformedReservations = reservationsData.map(reservation => ({
                 id: reservation.id,
@@ -93,14 +93,14 @@ export const useVehicleManagement = () => {
 
         const fromDate = new Date(reservationDateFrom);
         const toDate = new Date(reservationDateTo);
-        
+
         // Establecer horas para comparación correcta
         fromDate.setHours(0, 0, 0, 0);
         toDate.setHours(23, 59, 59, 999);
 
         const filteredReservations = reservations.filter(reservation => {
             // Solo considerar reservas activas/confirmadas
-            if (reservation.status?.toLowerCase() !== 'active' && 
+            if (reservation.status?.toLowerCase() !== 'active' &&
                 reservation.status?.toLowerCase() !== 'confirmado') {
                 return false;
             }
@@ -136,10 +136,10 @@ export const useVehicleManagement = () => {
         const ids = reservationsInDateRange
             .map(reservation => reservation.vehicle.id)
             .filter(Boolean);
-        
+
         // Eliminar duplicados
         const uniqueIds = [...new Set(ids)];
-        
+
         console.log('🚗 IDs de vehículos reservados:', uniqueIds);
         return uniqueIds;
     }, [reservationsInDateRange]);
@@ -150,13 +150,22 @@ export const useVehicleManagement = () => {
     }, [reservedVehicleIds]);
 
     // Función para determinar el estado efectivo de un vehículo
-    const getEffectiveVehicleStatus = useCallback((vehicle) => {
-        if (reservedVehicleIds.includes(vehicle.id)) {
-            console.log(`✅ Vehículo ${vehicle.name} (ID: ${vehicle.id}) está reservado`);
-            return 'reserved';
-        }
-        return vehicle.status || 'maintenanceCompleted';
+    const getVehicleStatuses = useCallback((vehicle) => {
+        const statuses = [];
+
+        if (vehicle.status === 'maintenanceRequired') statuses.push('maintenanceRequired');
+        if (vehicle.status === 'underMaintenance') statuses.push('underMaintenance');
+        if (vehicle.status === 'outOfService') statuses.push('outOfService');
+
+        if (reservedVehicleIds.includes(vehicle.id)) statuses.push('reserved');
+
+        // Si no tiene ningún estado relevante, se asume disponible
+        if (statuses.length === 0) statuses.push('maintenanceCompleted');
+
+        return statuses;
     }, [reservedVehicleIds]);
+
+
 
     // Filtrar vehículos basado en búsqueda y filtro
     const filteredVehicles = useMemo(() => {
@@ -181,13 +190,10 @@ export const useVehicleManagement = () => {
             // Filtro de estado
             let matchesStatus = true;
             if (statusFilter !== 'all') {
-                const effectiveStatus = getEffectiveVehicleStatus(vehicle);
-                matchesStatus = effectiveStatus === statusFilter;
-
-                if (statusFilter === 'reserved') {
-                    console.log(`🎯 Vehículo ${vehicle.name}: effectiveStatus=${effectiveStatus}, matchesStatus=${matchesStatus}`);
-                }
+                const statuses = getVehicleStatuses(vehicle);
+                matchesStatus = statuses.includes(statusFilter);
             }
+
 
             const passes = matchesSearch && matchesFilter && matchesStatus;
 
@@ -200,16 +206,24 @@ export const useVehicleManagement = () => {
 
         console.log('📋 Vehículos filtrados:', filtered.length);
 
-        if (statusFilter === 'reserved') {
-            console.log('🚗 Vehículos reservados mostrados:', filtered.map(v => ({
-                name: v.name,
-                id: v.id,
-                effectiveStatus: getEffectiveVehicleStatus(v)
-            })));
-        }
+
 
         return filtered;
-    }, [vehicles, searchTerm, filterType, statusFilter, getEffectiveVehicleStatus, reservedVehicleIds]);
+    }, [vehicles, searchTerm, filterType, statusFilter, getVehicleStatuses, reservedVehicleIds]);
+
+    const getEffectiveVehicleStatus = useCallback((vehicle) => {
+        // Si requiere mantenimiento o está fuera de servicio, devolver ese estado
+        if (vehicle.status === 'maintenanceRequired') return 'maintenanceRequired';
+        if (vehicle.status === 'underMaintenance') return 'underMaintenance';
+        if (vehicle.status === 'outOfService') return 'outOfService';
+
+        // Si no está en mantenimiento, verificar si está reservado
+        if (reservedVehicleIds.includes(vehicle.id)) return 'reserved';
+
+        return vehicle.status || 'maintenanceCompleted';
+    }, [reservedVehicleIds]);
+
+
 
     // Obtener tipos únicos para el filtro
     const uniqueTypes = useMemo(() => {
@@ -336,7 +350,7 @@ export const useVehicleManagement = () => {
         searchTerm,
         filterType,
         statusFilter,
-        
+
         // Estados de reservaciones
         reservations,
         reservationsLoading,
@@ -344,7 +358,7 @@ export const useVehicleManagement = () => {
         reservationDateFrom,
         reservationDateTo,
         reservationsInDateRange, // Nuevo: reservas en el rango de fechas
-        
+
         // Datos computados
         filteredVehicles,
         uniqueTypes,
