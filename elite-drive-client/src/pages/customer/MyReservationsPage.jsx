@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useReservation } from '../../hooks/useReservations';
 import { useAuth } from '../../hooks/useAuth';
+import { toast } from 'react-toastify';
 
 
 
@@ -10,20 +11,43 @@ const MyReservationPage = () => {
     const [reservations, setReservations] = useState([]);
     const { cancelReservation } = useReservation();
 
-    const handleCancelReservation = async (id) => {
-        const confirmed = window.confirm("¿Deseas cancelar esta reserva?");
-        if (!confirmed) return;
+    const handleCancelReservation = (id) => {
+    toast.info(
+        ({ closeToast }) => (
+            <div className="flex flex-col gap-2">
+                <p className="font-medium">¿Deseas cancelar esta reserva?</p>
+                <div className="flex justify-end gap-2">
+                    <button
+                        onClick={async () => {
+                            const result = await cancelReservation(id);
+                            closeToast();
 
-        const result = await cancelReservation(id);
+                            if (result.success) {
+                                toast.success(" Reserva cancelada");
+                                setReservations((prev) =>
+                                    prev.filter((r) => r.id !== id)
+                                );
+                            } else {
+                                toast.error(" Error al cancelar la reserva: " + result.error);
+                            }
+                        }}
+                        className="cursor-pointer px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                        Sí, cancelar
+                    </button>
+                    <button
+                        onClick={closeToast}
+                        className="cursor-pointer px-3 py-1 text-sm bg-gray-300 text-black rounded hover:bg-gray-400"
+                    >
+                        No
+                    </button>
+                </div>
+            </div>
+        ),
+        { autoClose: false, closeOnClick: false }
+    );
+};
 
-        if (result.success) {
-            alert("✅ Reserva cancelada");
-            // Lógica para actualizar visualmente la lista:
-            setReservations((prev) => prev.filter(r => r.id !== id));
-        } else {
-            alert("❌ Error al cancelar la reserva: " + result.error);
-        }
-    };
 
 
     useEffect(() => {

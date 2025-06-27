@@ -4,6 +4,8 @@ import ReservationService from '../../services/reservationService';
 import { useReservation } from '../../hooks/useReservations';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
 
 
 const FacturationDetail = ({ vehicle }) => {
@@ -72,6 +74,7 @@ const FacturationDetail = ({ vehicle }) => {
         const validation = ReservationService.validateReservation(reservationData);
         if (!validation.isValid) {
             setErrors(validation.errors);
+            toast.warn('⚠️ Verifica los campos del formulario');
             setIsLoading(false);
             return;
         }
@@ -80,7 +83,7 @@ const FacturationDetail = ({ vehicle }) => {
             const result = await createReservation(reservationData);
 
             if (result.success) {
-                alert('✅ ¡Reserva realizada con éxito!');
+                toast.success('¡Reserva realizada con éxito!');
                 navigate('/customer/my-reservations');
                 return; // Detener ejecución después de redirigir
             } else {
@@ -95,6 +98,7 @@ const FacturationDetail = ({ vehicle }) => {
                 : '❌ Error al crear la reserva.';
 
             setErrors([cleanMessage]);
+            toast.error(cleanMessage);
         }
 
 

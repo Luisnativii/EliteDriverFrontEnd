@@ -19,6 +19,8 @@ import RegisterPage from './pages/auth/RegisterPage';
 import VehicleTypeDetailPage from './pages/customer/VehicleTypeDetailPage';
 import RootRedirect from './components/RootRedirect';
 import { Outlet } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 const App = () => (
@@ -68,6 +70,7 @@ const App = () => (
 
       </DateProvider>
     </AuthProvider>
+    <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover theme="dark" />
   </Router>
 );
 
