@@ -35,8 +35,21 @@ const MyReservationPage = () => {
     if (isLoading) return <p className="text-white">Cargando reservas...</p>;
     if (error) return <p className="text-red-500">Error: {error}</p>;
 
+    const getDerivedStatus = (reservation) => {
+        const now = new Date();
+        const start = new Date(reservation.startDate);
+        const end = new Date(reservation.endDate);
+
+        if (start > now) return 'Próxima';
+        if (start <= now && end >= now) return 'Activa';
+        if (end < now) return 'Completada';
+        return 'Desconocida';
+    };
+
+
+
     return (
-        <div className="p-6 text-white">
+        <div className="py-25 px-10 text-white">
             <h1 className="text-2xl font-bold mb-4">Mis Reservas</h1>
 
             {reservations.length === 0 ? (
@@ -66,15 +79,22 @@ const MyReservationPage = () => {
                                 <p><strong>Inicio:</strong> {new Date(res.startDate).toLocaleDateString()}</p>
                                 <p><strong>Fin:</strong> {new Date(res.endDate).toLocaleDateString()}</p>
                                 <div className="flex items-center justify-between mt-2">
-                                    <p><strong>Estado:</strong> {res.status}</p>
-
+                                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${getDerivedStatus(res) === 'Activa' ? 'bg-green-500 text-white' :
+                                        getDerivedStatus(res) === 'Próxima' ? 'bg-yellow-500 text-black' :
+                                            getDerivedStatus(res) === 'Completada' ? 'bg-blue-500 text-white' :
+                                                'bg-gray-500 text-white'
+                                        }`}>
+                                        {getDerivedStatus(res)}
+                                    </span>
                                     {/* Botón cancelar */}
-                                    <button
-                                        onClick={() => handleCancelReservation(res.id)}
-                                        className="cursor-pointer ml-2 px-3 py-1 text-sm bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                                    >
-                                        Cancelar
-                                    </button>
+                                    {['Activa', 'Próxima'].includes(getDerivedStatus(res)) && (
+                                        <button
+                                            onClick={() => handleCancelReservation(res.id)}
+                                            className="cursor-pointer ml-2 px-3 py-1 text-sm bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>

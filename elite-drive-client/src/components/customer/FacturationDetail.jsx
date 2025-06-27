@@ -6,7 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 
-const FacturationDetail = ({ vehicle, onReservation }) => {
+const FacturationDetail = ({ vehicle }) => {
     const { user } = useAuth();
     const { createReservation, isLoading } = useReservation();
     const { startDate: contextStartDate, endDate: contextEndDate, setStartDate, setEndDate } = useDateContext();
@@ -57,6 +57,10 @@ const FacturationDetail = ({ vehicle, onReservation }) => {
     }, [startDate, endDate, vehicle]);
     const handleReservation = async () => {
         setErrors([]);
+        if (!vehicle || !vehicle.id) {
+            setErrors(['❌ No se pudo obtener la información del vehículo. Intenta nuevamente.']);
+            return;
+        }
 
         const reservationData = {
             vehicleId: vehicle.id,
@@ -77,10 +81,10 @@ const FacturationDetail = ({ vehicle, onReservation }) => {
 
             if (result.success) {
                 alert('✅ ¡Reserva realizada con éxito!');
-                if (onReservation) onReservation(result.data);
-                navigate('/customer/my-reservations'); // Redirección automática
+                navigate('/customer/my-reservations');
+                return; // Detener ejecución después de redirigir
             } else {
-                setErrors([result.error || 'Error desconocido al crear la reserva vehiculo ya reservado']);
+                setErrors([result.error || 'Error desconocido al crear la reserva']);
             }
         } catch (error) {
             const raw = error.message || '';
@@ -99,7 +103,7 @@ const FacturationDetail = ({ vehicle, onReservation }) => {
 
 
 
-    if (!vehicle) return null;
+    if (!vehicle || !vehicle.id) return null;
 
     return (
         <div className="bg-white rounded-lg shadow-md p-6">

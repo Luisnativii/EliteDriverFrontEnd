@@ -11,7 +11,7 @@ const VehicleCard = ({ vehicle, isFiltered = false }) => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const { startDate, endDate } = useDateContext();
-    
+
     const handleReservation = () => {
         if (!user) {
             navigate('/login', {
@@ -76,15 +76,15 @@ const VehiclesPage = () => {
     // Filtrar vehículos disponibles
     let filteredVehicles = vehicles.filter(vehicle => {
         // Solo mostrar vehículos con estado "maintenanceCompleted" o sin estado definido
-        const vehicleStatus = vehicle.status || 'maintenanceCompleted' ;
+        const vehicleStatus = vehicle.status || 'maintenanceCompleted';
         const isMaintenanceCompleted = vehicleStatus === 'maintenanceCompleted';
-        
+
         // Filtrar por tipo si no es 'all'
         const typeMatch = filteredType === 'all' || vehicle.type === filteredType;
-        
+
         // No mostrar vehículos ocupados si hay fechas seleccionadas
         const isNotBusy = !hasDateFilter || !busyVehicleIds.includes(vehicle.id);
-        
+
         return isMaintenanceCompleted && typeMatch && isNotBusy;
     });
 
@@ -147,6 +147,15 @@ const VehiclesPage = () => {
         );
     }
 
+    const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        const day = date.getUTCDate().toString().padStart(2, '0');
+        const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+        const year = date.getUTCFullYear();
+        return `${day}/${month}/${year}`;
+    };
+
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-neutral-800 via-neutral-900 to-black text-white px-6 py-25 ">
             <h1 className="text-2xl font-bold mb-6 text-white">Vehículos Disponibles</h1>
@@ -176,7 +185,7 @@ const VehiclesPage = () => {
             {hasDateFilter && (
                 <div className="mb-6 p-6 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-blue-800">
-                        📅 Mostrando disponibilidad del {new Date(startDate).toLocaleDateString()} al {new Date(endDate).toLocaleDateString()}
+                        📅 Mostrando disponibilidad del {formatDate(startDate)} al {formatDate(endDate)}
                     </p>
                 </div>
             )}
@@ -189,8 +198,8 @@ const VehiclesPage = () => {
                             No hay vehículos disponibles
                         </h3>
                         <p className="text-white/70 mb-4">
-                            {hasDateFilter 
-                                ? 'No hay vehículos disponibles para las fechas seleccionadas.' 
+                            {hasDateFilter
+                                ? 'No hay vehículos disponibles para las fechas seleccionadas.'
                                 : 'Actualmente no hay vehículos disponibles para alquilar.'
                             }
                         </p>
