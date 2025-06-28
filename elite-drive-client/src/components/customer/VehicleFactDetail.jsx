@@ -37,11 +37,6 @@ const VehicleFactDetail = ({ vehicle }) => {
                         <span className="text-gray-900">{vehicle.capacity || 'No especificada'} personas</span>
                     </div>
 
-                    <div className="flex justify-between">
-                        <span className="text-gray-600 font-medium">Categoría:</span>
-                        <span className="text-gray-900">{vehicle.category || vehicle.type}</span>
-                    </div>
-
                     <div className="border-t pt-3 mt-4">
                         <div className="flex justify-between">
                             <span className="text-gray-600 font-medium">Precio por día:</span>
