@@ -1,141 +1,89 @@
-import React, { createContext, useState, useEffect } from 'react';
-import authService from '../services/authService';
+// context/AuthContext.js
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getUserRouteRole } from '../utils/roleMapping';
 
 const AuthContext = createContext();
 
-// Definir roles y mapeo de rutas
-const ROLES = {
-  ADMIN: 'ADMIN',
-  CUSTOMER: 'CUSTOMER'
-};
-
-const ROLE_ROUTE_MAP = {
-  'ADMIN': 'admin',
-  'CUSTOMER': 'customer'
-};
-
-const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Función de login simplificada para testing
-  const login = async (role) => {
-    try {
-      setLoading(true);
-      
-      // Buscar usuario mock basado en el rol
-      const mockUsers = authService.getMockUsers();
-      const mockUser = mockUsers.find(u => u.role === role);
-      
-      if (!mockUser) {
-        throw new Error('Rol no válido para testing');
-      }
-
-      // Hacer login con las credenciales del usuario mock
-      const result = await authService.login(mockUser.email, mockUser.password);
-      
-      if (result && result.user) {
-        const userData = {
-          ...result.user,
-          isAuthenticated: true,
-          routeRole: ROLE_ROUTE_MAP[result.user.role] || 'customer'
-        };
-        
-        setUser(userData);
-        
-        return {
-          success: true,
-          routeRole: userData.routeRole,
-          user: userData
-        };
-      }
-      
-      throw new Error('Login failed');
-      
-    } catch (error) {
-      console.error('Error en login:', error);
-      return {
-        success: false,
-        error: error.message
-      };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Función de login normal con email y password
-  const loginWithCredentials = async (email, password) => {
-    try {
-      setLoading(true);
-      const result = await authService.login(email, password);
-      
-      if (result && result.user) {
-        const userData = {
-          ...result.user,
-          isAuthenticated: true,
-          routeRole: ROLE_ROUTE_MAP[result.user.role] || 'customer'
-        };
-        
-        setUser(userData);
-        return {
-          success: true,
-          routeRole: userData.routeRole,
-          user: userData
-        };
-      }
-      
-      throw new Error('Login failed');
-      
-    } catch (error) {
-      console.error('Error en login:', error);
-      return {
-        success: false,
-        error: error.message
-      };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logout = () => {
-    authService.logout();
-    setUser(null);
-  };
-
-  // Verificar autenticación al cargar la aplicación
   useEffect(() => {
-    const checkAuth = () => {
+    // Load user from localStorage (using authService keys)
+    const loadUser = async () => {
       try {
-        if (authService.isAuthenticated()) {
-          const currentUser = authService.getUser();
-          if (currentUser) {
-            setUser({
-              ...currentUser,
-              isAuthenticated: true,
-              routeRole: ROLE_ROUTE_MAP[currentUser.role] || 'customer'
-            });
+        const token = localStorage.getItem('authToken'); // Use authService key
+        if (token) {
+          const userData = JSON.parse(localStorage.getItem('userData')); // Use authService key
+          
+          if (userData) {
+            // Add routeRole using the utility
+            const userWithRouteRole = {
+              ...userData,
+              routeRole: getUserRouteRole(userData),
+              isAuthenticated: true
+            };
+            
+            setUser(userWithRouteRole);
           }
         }
       } catch (error) {
-        console.error('Error checking auth:', error);
+        // console.error('Error loading user:', error);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
       } finally {
         setLoading(false);
       }
     };
 
-    checkAuth();
+    loadUser();
   }, []);
+
+  // This login function now just processes data already saved by authService
+  const login = async (authData) => {
+    try {
+      // authService already saved the token and user data
+      // We just need to update our context state
+      if (authData && authData.user) {
+        const userWithRouteRole = {
+          ...authData.user,
+          routeRole: getUserRouteRole(authData.user),
+          isAuthenticated: true
+        };
+
+        setUser(userWithRouteRole);
+        return { success: true, user: userWithRouteRole };
+      } else {
+        return { success: false, error: 'Invalid auth data' };
+      }
+    } catch (error) {
+      return { success: false, error: 'Error updating context' };
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    setUser(null);
+  };
+
+  const updateUser = (updatedUserData) => {
+    const userWithRouteRole = {
+      ...updatedUserData,
+      routeRole: getUserRouteRole(updatedUserData),
+      isAuthenticated: true
+    };
+    
+    localStorage.setItem('userData', JSON.stringify(userWithRouteRole));
+    setUser(userWithRouteRole);
+  };
 
   const value = {
     user,
-    login,
-    loginWithCredentials,
-    logout,
     loading,
-    ROLES,
-    isAuthenticated: user?.isAuthenticated || false,
-    isAdmin: user?.role === ROLES.ADMIN,
-    isCustomer: user?.role === ROLES.CUSTOMER
+    login,
+    logout,
+    updateUser
   };
 
   return (
@@ -145,4 +93,5 @@ const AuthProvider = ({ children }) => {
   );
 };
 
-export { AuthContext, AuthProvider };
+// Export the context so useAuth can import it
+export { AuthContext };

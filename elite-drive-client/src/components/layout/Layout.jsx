@@ -1,43 +1,88 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useLayout } from '../../hooks/useLayout';
+import Sidebar from './Sidebar';
+import Header from './Header';
 
 const Layout = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const { showSidebar, isMobile, toggleSidebar } = useLayout();
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">
-                EliteDrive - {user?.role === 'ADMIN' ? 'Admin Panel' : 'Customer Portal'}
-              </h1>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                Bienvenido, {user?.firstName || user?.name}
-              </span>
-              <button
-                onClick={logout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Cerrar Sesión
-              </button>
+    <div className="flex h-screen bg-neutral-900 w-screen overflow-hidden">
+      {/* Mobile sidebar overlay */}
+      {isMobile && showSidebar && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300"
+          onClick={toggleSidebar}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`
+        transition-all duration-300 ease-in-out
+        ${isMobile 
+          ? `${showSidebar ? 'fixed translate-x-0' : 'fixed -translate-x-full'} top-0 left-0 h-screen z-50`
+          : `${showSidebar ? 'w-64' : 'w-0'} relative overflow-hidden`
+        }
+      `}>
+        <Sidebar toggleSidebar={toggleSidebar} isMobile={isMobile} />
+      </div>
+
+      {/* Main content area */}
+      <div className="bg-neutral-900 flex flex-col flex-1 overflow-hidden">
+        <Header toggleSidebar={toggleSidebar} showSidebar={showSidebar && !isMobile} />
+        
+        <main className="flex-1 overflow-auto transition-all duration-300 custom-scrollbar">
+          <div className="min-h-full">
+            <div className="animate-fade-in">
+              <Outlet />
             </div>
           </div>
-        </div>
-      </header>
+        </main>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <Outlet />
-        </div>
-      </main>
+      {/* Scrollbar & animation styles */}
+      <style>{`
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgb(56, 58, 61) #000000;
+        }
+                
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+                
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #000000;
+          border-radius: 2px;
+        }
+                
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #6b7280;
+          border-radius: 2px;
+        }
+                
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgb(68, 71, 76);
+        }
+      `}</style>
     </div>
   );
 };

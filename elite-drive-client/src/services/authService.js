@@ -1,124 +1,157 @@
-// Usuarios simulados
-const MOCK_USERS = [
-  {
-    id: 1,
-    email: "admin@elitedrive.com",
-    password: "admin123",
-    role: "ADMIN",
-    name: "Administrator",
-    firstName: "Admin",
-    lastName: "User",
-    phone: "+503 1234-5678"
-  },
-  {
-    id: 2,
-    email: "customer@elitedrive.com", 
-    password: "customer123",
-    role: "CUSTOMER",
-    name: "John Doe",
-    firstName: "John",
-    lastName: "Doe",
-    phone: "+503 8765-4321"
-  },
-  {
-    id: 3,
-    email: "usuario@test.com",
-    password: "123456",
-    role: "CUSTOMER", 
-    name: "Usuario Test",
-    firstName: "Usuario",
-    lastName: "Test",
-    phone: "+503 5555-5555"
+// services/authService.js
+import axios from 'axios';
+import { API_BASE_URL, API_ENDPOINTS } from '../config/apiConfig';
+
+// Configurar axios instance
+const authApi = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
   }
-];
+});
 
-class AuthService {
-  constructor() {
-    this.currentUser = null;
-    this.isLoggedIn = false;
+// Interceptor para requests - agregar token si existe
+authApi.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
+);
 
-  // Login simplificado
-  async login(email, password) {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        try {
-          const user = MOCK_USERS.find(
-            u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-          );
+// Interceptor para responses - manejar errores globalmente
+authApi.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expirado o inválido
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      window.location.href = '/';
+    }
+    return Promise.reject(error);
+  }
+);
 
-          if (!user) {
-            reject(new Error("Credenciales inválidas"));
-            return;
-          }
+export const login = async (credentials) => {
+  try {
+    const response = await authApi.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
+    
+    // Verificar que la respuesta tenga el formato esperado
+    if (response.data && response.data.token && response.data.user) {
+      // Guardar token y datos del usuario
+      localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem('userData', JSON.stringify(response.data.user));
+      
+      return response.data;
+    } else {
+      throw new Error('Formato de respuesta inválido del servidor');
+    }
+    
+  } catch (error) {
+    // Manejar diferentes tipos de errores
+    if (error.response) {
+      // El servidor respondió con un error
+      const message = error.response.data?.message || 'Error del servidor';
+      throw new Error(message);
+    } else if (error.request) {
+      // La petición se hizo pero no hubo respuesta
+      throw new Error('No se pudo conectar con el servidor. Verifica que esté ejecutándose.');
+    } else {
+      // Error en la configuración de la petición
+      throw new Error(error.message || 'Error inesperado');
+    }
+  }
+};
 
-          this.currentUser = {
-            id: user.id,
-            email: user.email,
-            role: user.role,
-            name: user.name,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            phone: user.phone
-          };
-          
-          this.isLoggedIn = true;
-
-          resolve({
-            user: this.currentUser,
-            message: "Login exitoso"
-          });
-
-        } catch (error) {
-          reject(new Error("Error interno del servidor"));
+export const register = async (userData) => {
+  try {
+    const response = await axios.post('/api/auth/register', userData, {
+        headers: {
+            'Content-Type': 'application/json'
+            // NO incluir Authorization aquí
         }
-      }, 300);
     });
+    return response.data;
+    
+  } catch (error) {
+    // Crear mensaje de error específico basado en el código de estado
+    let errorMessage = 'Error al registrar usuario. Intenta nuevamente.';
+    
+    if (error.response) {
+      const { status, data } = error.response;
+      
+      switch (status) {
+        case 403:
+          // Forbidden - puede ser por varios motivos
+          if (data && typeof data === 'string') {
+            errorMessage = data;
+          } else if (data?.message) {
+            errorMessage = data.message;
+          } else if (data?.error) {
+            errorMessage = data.error;
+          } else {
+            errorMessage = 'Acceso denegado. Verifica que todos los datos sean correctos.';
+          }
+          break;
+          
+        case 400:
+          errorMessage = data?.message || 'Datos inválidos. Verifica la información ingresada.';
+          break;
+          
+        case 409:
+          errorMessage = data?.message || 'El usuario ya existe. Intenta con otro email o DUI.';
+          break;
+          
+        case 422:
+          errorMessage = data?.message || 'Error de validación. Revisa los datos ingresados.';
+          break;
+          
+        case 500:
+          errorMessage = 'Error interno del servidor. Intenta más tarde.';
+          break;
+          
+        default:
+          errorMessage = data?.message || `Error del servidor (${status}).`;
+      }
+    } else if (error.request) {
+      errorMessage = 'No se pudo conectar con el servidor. Verifica que esté ejecutándose.';
+    } else {
+      errorMessage = error.message || 'Error inesperado';
+    }
+    
+    throw new Error(errorMessage);
   }
+};
 
-  // Cerrar sesión
-  logout() {
-    this.currentUser = null;
-    this.isLoggedIn = false;
+export const logout = () => {
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('userData');
+  window.location.href = '/'; //redirigir al homepage en vez del login
+};
+
+export const getCurrentUser = () => {
+  const userData = localStorage.getItem('userData');
+  return userData ? JSON.parse(userData) : null;
+};
+
+export const isAuthenticated = () => {
+  return !!localStorage.getItem('authToken');
+};
+
+export const validateToken = async () => {
+  try {
+    const response = await authApi.get('/api/auth/validate');
+    return response.data.valid;
+  } catch (error) {
+    return false;
   }
-
-  // Verificar autenticación
-  isAuthenticated() {
-    return this.isLoggedIn && this.currentUser !== null;
-  }
-
-  // Obtener usuario actual
-  getUser() {
-    return this.isAuthenticated() ? this.currentUser : null;
-  }
-
-  // Verificar rol
-  hasRole(role) {
-    const user = this.getUser();
-    return user && user.role === role;
-  }
-
-  // Verificar si es admin
-  isAdmin() {
-    return this.hasRole("ADMIN");
-  }
-
-  // Verificar si es customer
-  isCustomer() {
-    return this.hasRole("CUSTOMER");
-  }
-
-  // Obtener usuarios para testing
-  getMockUsers() {
-    return MOCK_USERS.map(user => ({
-      email: user.email,
-      password: user.password,
-      role: user.role,
-      name: user.name
-    }));
-  }
-}
-
-// Exportar instancia singleton
-const authService = new AuthService();
-export default authService;
+};

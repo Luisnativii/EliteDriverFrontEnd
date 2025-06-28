@@ -15,9 +15,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        montserrat: ["Montserrat", "sans-serif"], 
+        montserrat: ["Montserrat", "sans-serif"],
       },
-       fontSize: {
+      fontSize: {
         h1: "var(--h1)",
         h2: "var(--h2)",
         h3: "var(--h3)",
@@ -42,45 +42,45 @@ export default {
       },
       colors: {
         primary: {
-          light: "#f3eee8",  // Crema
-          DEFAULT: "#dcac38", // Mostaza
-          dark: "#b96c38",    // Naranja quemado
+          light: "#FFFFFF",        // Blanco (para hover en botón)
+          DEFAULT: "#FF0202",      // Rojo botón
+          dark: "#C10000",         // Opcional: rojo más oscuro si necesitas
         },
         secondary: {
-          light: "#ac989f",  // Malva
-          DEFAULT: "#7a4a29", // Marrón oscuro
-          dark: "#3a3331",   // Marrón muy oscuro
+          light: "#E0E0E0",        // Opcional: gris claro  para secciones 
+          DEFAULT: "#4E504D",      // Fondo gris para secciones (usa este es el principal)
+          dark: "#2B2C2B",         // Gris más oscuro si necesitas
         },
         accent: {
-          light: "#44436c",  // Azul marino claro
-          DEFAULT: "#393e5a", // Azul profundo
-          dark: "#595858",   // Gris oscuro
+          light: "#FFB6B6", // Rosa claro estos por si lo usas
+          DEFAULT: "#FF0202", // Rojo brillante para el boton
+          dark: "#B20000",  // Rojo oscuro estos por si lo usas
         },
         neutral: {
-          light: "#f3eee8", // Crema claro
-          DEFAULT: "#89786e", // Taupe
-          dark: "#3a3331",  // Marrón oscuro
+          light: "#FFFFFF",        // Texto blanco (para seccion con gris)
+          DEFAULT: "#000000",      // Texto negro (para seccion con imagen y con blanco)
+          dark: "#4E504D",         //  gris si quieres usarlo
         },
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: "#FF0202",
+        input: "#FF0202",
+        ring: "#FF0202",
+        background: "#FF0202",
+        foreground: "#FF0202",
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "#FF0202",
+          foreground: "#FF0202",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "#FF0202",
+          foreground: "#FF0202",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "#FF0202",
+          foreground: "#FF0202",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "#FF0202",
+          foreground: "#FF0202",
         },
       },
     },
