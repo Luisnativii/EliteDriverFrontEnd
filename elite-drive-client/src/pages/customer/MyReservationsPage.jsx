@@ -12,10 +12,17 @@ const MyReservationPage = () => {
     const { cancelReservation } = useReservation();
 
     const formatDateLocal = (dateString) => {
-        const cleanDate = dateString.split('T')[0]; // "2025-06-28"
-        const [year, month, day] = cleanDate.split('-');
-        return `${day}/${month}/${year}`;
-    };
+  const date = new Date(dateString);
+  return date.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'America/El_Salvador', // O ajustá según tu zona
+  });
+};
+
+
+
 
 
 
@@ -109,9 +116,8 @@ const MyReservationPage = () => {
 
                             <div className="text-sm mt-2 space-y-1">
                                 <p><strong>Inicio:</strong> {formatDateLocal(res.startDate)}</p>
-                                <p><strong>Fin:</strong> {
-                                    new Date(new Date(res.endDate).getTime() - 86400000).toLocaleDateString()
-                                }</p>
+                                <p><strong>Fin:</strong> {formatDateLocal(res.endDate)}</p>
+
                                 <div className="flex items-center justify-between mt-2">
                                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${getDerivedStatus(res) === 'Activa' ? 'bg-green-500 text-white' :
                                         getDerivedStatus(res) === 'Próxima' ? 'bg-yellow-500 text-black' :

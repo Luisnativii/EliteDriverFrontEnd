@@ -12,7 +12,6 @@ import HomePage from './pages/customer/HomePage';
 import MyReservationPage from './pages/customer/MyReservationsPage';
 import ReservationPage from './pages/customer/ReservationPage';
 import VehiclesPage from './pages/customer/VehiclesPage';
-import VehicleDetailPage from './pages/customer/VehicleDetailPage';
 import LoginTemp from './pages/auth/LoginTemp';
 import Login from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
@@ -60,7 +59,6 @@ const App = () => (
               <Route index element={<HomePage />} />
               <Route path="my-reservations" element={<MyReservationPage />} />
               <Route path="reservation-page/:vehicleId" element={<ReservationPage />} />
-              <Route path="vehicles/:id" element={<VehicleDetailPage />} />
             </Route>
           </Route>
 

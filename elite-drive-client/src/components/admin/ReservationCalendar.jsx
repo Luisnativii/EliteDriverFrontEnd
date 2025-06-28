@@ -2,23 +2,23 @@ import React, { useState, useMemo } from 'react';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
-import { es } from 'date-fns/locale'; 
+import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import { useReservationManagement } from '../../hooks/useReservationManagement';
 import ReservationDetailModal from '../reservation/ReservationDetailModal';
 
 const locales = {
-  es: es,
+    es: es,
 };
 
 const localizer = dateFnsLocalizer({
-  format: (date, formatStr, culture, options) =>
-    format(date, formatStr, { ...options, locale: es }),
-  parse: (value, formatStr, culture, options) =>
-    parse(value, formatStr, new Date(), { ...options, locale: es }),
-  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1, locale: es }),
-  getDay,
-  locales: { es },
+    format: (date, formatStr, culture, options) =>
+        format(date, formatStr, { ...options, locale: es }),
+    parse: (value, formatStr, culture, options) =>
+        parse(value, formatStr, new Date(), { ...options, locale: es }),
+    startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1, locale: es }),
+    getDay,
+    locales: { es },
 });
 
 
@@ -36,15 +36,19 @@ const ReservationCalendar = () => {
         return reservations.map(r => {
             const startDate = new Date(r.startDate);
             const endDate = new Date(r.endDate);
+            endDate.setDate(endDate.getDate() + 1); // 👈 corregimos el rango para react-big-calendar
+
             const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
             const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
 
-            // Determinar el estado de la reserva
-            let status = 'upcoming'; // próxima (amarillo)
+            let status = 'upcoming';
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
             if (endDateOnly < today) {
-                status = 'completed'; // completada (azul)
+                status = 'completed';
             } else if (startDateOnly <= today && endDateOnly >= today) {
-                status = 'active'; // activa (verde)
+                status = 'active';
             }
 
             return {
