@@ -94,42 +94,31 @@ const VehiclesPage = () => {
 
 useEffect(() => {
     if (startDate && endDate) {
-        const selectedStart = new Date(startDate);
-        const selectedEnd = new Date(endDate);
-        selectedStart.setHours(0, 0, 0, 0);
-        selectedEnd.setHours(0, 0, 0, 0);
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        // Validar que la fecha de inicio sea antes o igual a la de fin
+        if (start > end) {
+            console.warn('❗Fechas inválidas: inicio después del fin');
+            return;
+        }
 
         const formatDate = (d) => {
             const date = new Date(d);
             const day = date.getDate().toString().padStart(2, '0');
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
             const year = date.getFullYear();
-            return `${day}-${month}-${year}`;
+            return `${day}-${month}-${year}`; // formato esperado por el backend
         };
 
-        ReservationService.getReservationsByDateRange(
-            formatDateISO(startDate),
-            formatDateISO(endDate)
-        )
-        .then(reservations => {
-            const busyIds = reservations
-                .filter(res => {
-                    const resStart = new Date(res.startDate);
-                    const resEnd = new Date(res.endDate);
-
-                    resStart.setHours(0, 0, 0, 0);
-                    resEnd.setHours(0, 0, 0, 0);
-
-                    // Aquí comparamos si los rangos se SOLAPAN (inclusivo)
-                    return selectedStart <= resEnd && selectedEnd > resStart;
-                })
-                .map(r => r.vehicle?.id || r.vehicleId)
-                .filter(Boolean);
-
-            setBusyVehicleIds(busyIds);
-        })
-        .catch(console.error);
+        ReservationService.getReservationsByDateRange(formatDate(startDate), formatDate(endDate))
+            .then(reservations => {
+                const busyIds = reservations.map(r => r.vehicle.id);
+                setBusyVehicleIds(busyIds);
+            })
+            .catch(console.error);
     } else {
+        // Si no hay fechas seleccionadas, limpiar la lista de vehículos ocupados
         setBusyVehicleIds([]);
     }
 }, [startDate, endDate]);
