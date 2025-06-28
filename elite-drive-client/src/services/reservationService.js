@@ -1,7 +1,9 @@
 import { API_BASE_URL, API_ENDPOINTS, buildEndpoint } from '../config/apiConfig';
 
 
+
 class ReservationService {
+    
     //llamada a API para crear reserva
     static async createReservation(reservationData) {
         const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
@@ -60,8 +62,7 @@ class ReservationService {
     //peticion de rango de fechas
     static async getReservationsByDateRange(startDate, endDate) {
         const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-        const endpoint = buildEndpoint(API_ENDPOINTS.RESERVATIONS.GET_BY_DATE, { startDate, endDate });
-        const url = `${API_BASE_URL}${endpoint}`;
+        const url = `${API_BASE_URL}/reservations/date?startDate=${startDate}&endDate=${endDate}`;
         const response = await fetch(url,
             {
                 headers: {
@@ -81,7 +82,6 @@ class ReservationService {
         return data;
     }
 
-
     // Validar datos de reserva
     static validateReservation(reservationData) {
         const errors = [];
@@ -95,20 +95,22 @@ class ReservationService {
         }
 
         if (reservationData.startDate && reservationData.endDate) {
-            const startDate = new Date(reservationData.startDate);
-            const endDate = new Date(reservationData.endDate);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const toDateOnlyString = (d) =>
+                new Date(d).toISOString().split('T')[0]; // YYYY-MM-DD
 
-            if (startDate < today) {
+            const start = toDateOnlyString(reservationData.startDate);
+            const end = toDateOnlyString(reservationData.endDate);
+            const today = toDateOnlyString(new Date());
+
+            if (start < today) {
                 errors.push('La fecha de inicio no puede ser anterior a hoy');
             }
 
-            if (endDate <= startDate) {
+            if (end <= start) {
                 errors.push('La fecha de fin debe ser posterior a la fecha de inicio');
             }
-        }
 
+        }
         if (!reservationData.vehicleId) {
             errors.push('ID del vehículo es requerido');
         }

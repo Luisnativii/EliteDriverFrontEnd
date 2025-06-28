@@ -18,6 +18,15 @@ const FacturationDetail = ({ vehicle }) => {
     const [totalPrice, setTotalPrice] = useState(0);
     const [errors, setErrors] = useState([]);
     const navigate = useNavigate();
+    //formato de fecha
+        const formatDateLocal = (dateString) => {
+            const date = new Date(dateString + 'T00:00'); // forzar 00:00 local
+            return date.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+            });
+        };
 
 
 
@@ -58,6 +67,7 @@ const FacturationDetail = ({ vehicle }) => {
         }
     }, [startDate, endDate, vehicle]);
     const handleReservation = async () => {
+        console.log('🚀 Enviando reserva');
         setErrors([]);
         if (!vehicle || !vehicle.id) {
             setErrors(['❌ No se pudo obtener la información del vehículo. Intenta nuevamente.']);
@@ -74,7 +84,7 @@ const FacturationDetail = ({ vehicle }) => {
         const validation = ReservationService.validateReservation(reservationData);
         if (!validation.isValid) {
             setErrors(validation.errors);
-            toast.warn('⚠️ Verifica los campos del formulario');
+            toast.warn('Verifica los campos del formulario');
             setIsLoading(false);
             return;
         }
@@ -100,14 +110,12 @@ const FacturationDetail = ({ vehicle }) => {
             setErrors([cleanMessage]);
             toast.error(cleanMessage);
         }
-
-
-
     };
 
 
 
     if (!vehicle || !vehicle.id) return null;
+
 
     return (
         <div className="bg-white rounded-lg shadow-md p-6">
@@ -208,8 +216,6 @@ const FacturationDetail = ({ vehicle }) => {
                 {/* Información adicional */}
                 <div className="text-sm text-gray-600 mt-4">
                     <p>• Las reservas se confirman inmediatamente</p>
-                    <p>• Puedes cancelar hasta 24 horas antes</p>
-                    <p>• Se requiere licencia de conducir válida</p>
                 </div>
             </div>
         </div>

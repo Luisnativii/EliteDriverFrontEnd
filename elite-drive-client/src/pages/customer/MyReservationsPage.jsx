@@ -11,42 +11,50 @@ const MyReservationPage = () => {
     const [reservations, setReservations] = useState([]);
     const { cancelReservation } = useReservation();
 
-    const handleCancelReservation = (id) => {
-    toast.info(
-        ({ closeToast }) => (
-            <div className="flex flex-col gap-2">
-                <p className="font-medium">¿Deseas cancelar esta reserva?</p>
-                <div className="flex justify-end gap-2">
-                    <button
-                        onClick={async () => {
-                            const result = await cancelReservation(id);
-                            closeToast();
+    const formatDateLocal = (dateString) => {
+        const cleanDate = dateString.split('T')[0]; // "2025-06-28"
+        const [year, month, day] = cleanDate.split('-');
+        return `${day}/${month}/${year}`;
+    };
 
-                            if (result.success) {
-                                toast.success(" Reserva cancelada");
-                                setReservations((prev) =>
-                                    prev.filter((r) => r.id !== id)
-                                );
-                            } else {
-                                toast.error(" Error al cancelar la reserva: " + result.error);
-                            }
-                        }}
-                        className="cursor-pointer px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-                    >
-                        Sí, cancelar
-                    </button>
-                    <button
-                        onClick={closeToast}
-                        className="cursor-pointer px-3 py-1 text-sm bg-gray-300 text-black rounded hover:bg-gray-400"
-                    >
-                        No
-                    </button>
+
+
+    const handleCancelReservation = (id) => {
+        toast.info(
+            ({ closeToast }) => (
+                <div className="flex flex-col gap-2">
+                    <p className="font-medium">¿Deseas cancelar esta reserva?</p>
+                    <div className="flex justify-end gap-2">
+                        <button
+                            onClick={async () => {
+                                const result = await cancelReservation(id);
+                                closeToast();
+
+                                if (result.success) {
+                                    toast.success(" Reserva cancelada");
+                                    setReservations((prev) =>
+                                        prev.filter((r) => r.id !== id)
+                                    );
+                                } else {
+                                    toast.error(" Error al cancelar la reserva: " + result.error);
+                                }
+                            }}
+                            className="cursor-pointer px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                        >
+                            Sí, cancelar
+                        </button>
+                        <button
+                            onClick={closeToast}
+                            className="cursor-pointer px-3 py-1 text-sm bg-gray-300 text-black rounded hover:bg-gray-400"
+                        >
+                            No
+                        </button>
+                    </div>
                 </div>
-            </div>
-        ),
-        { autoClose: false, closeOnClick: false }
-    );
-};
+            ),
+            { autoClose: false, closeOnClick: false }
+        );
+    };
 
 
 
@@ -100,8 +108,10 @@ const MyReservationPage = () => {
                             <p className="text-sm text-gray-300 mb-1">Precio por día: ${res.vehicle.pricePerDay.toFixed(2)}</p>
 
                             <div className="text-sm mt-2 space-y-1">
-                                <p><strong>Inicio:</strong> {new Date(res.startDate).toLocaleDateString()}</p>
-                                <p><strong>Fin:</strong> {new Date(res.endDate).toLocaleDateString()}</p>
+                                <p><strong>Inicio:</strong> {formatDateLocal(res.startDate)}</p>
+                                <p><strong>Fin:</strong> {
+                                    new Date(new Date(res.endDate).getTime() - 86400000).toLocaleDateString()
+                                }</p>
                                 <div className="flex items-center justify-between mt-2">
                                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${getDerivedStatus(res) === 'Activa' ? 'bg-green-500 text-white' :
                                         getDerivedStatus(res) === 'Próxima' ? 'bg-yellow-500 text-black' :

@@ -450,7 +450,7 @@ const ReservationManagementPage = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-white">
-                          {formatDate(reservation.endDate)}
+                          {formatDate(new Date(new Date(reservation.endDate).getTime() - 86400000))}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
