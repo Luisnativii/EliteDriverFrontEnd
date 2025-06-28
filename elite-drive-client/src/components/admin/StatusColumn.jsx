@@ -18,7 +18,8 @@ const StatusColumn = ({
   dragOverColumn,
   draggedVehicle,
   onDragStart,
-  onDragEnd
+  onDragEnd,
+  onViewHistory
 }) => {
   const IconComponent = {
     AlertCircle,
@@ -72,6 +73,7 @@ const StatusColumn = ({
             vehicle={vehicle}
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
+            onViewHistory={onViewHistory}
             isDragging={draggedVehicle?.id === vehicle.id}
           />
         ))}

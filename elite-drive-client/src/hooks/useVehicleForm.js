@@ -11,9 +11,13 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
     vehicleType: initialData.vehicleType || initialData.type || '', // Handle both field names
     pricePerDay: initialData.pricePerDay?.toString() || '',
     kilometers: initialData.kilometers?.toString() || '',
+    kilometersDisplay: initialData.kilometers
+  ? initialData.kilometers.toLocaleString()
+  : '',
     kmForMaintenance: initialData.kmForMaintenance?.toString() || '',
     mainImageUrl: initialData.mainImageUrl || '',
-    
+    insurancePhone: initialData.insurancePhone || '',
+
     // Complex fields with proper handling
     features: Array.isArray(initialData.features) ? initialData.features : [],
     featuresText: (() => {
@@ -24,7 +28,7 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
       }
       return '';
     })(),
-    
+
     imageUrls: Array.isArray(initialData.imageUrls) ? initialData.imageUrls : [],
     imageUrlsText: (() => {
       if (Array.isArray(initialData.imageUrls)) {
@@ -34,7 +38,7 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
       }
       return '';
     })(),
-    
+
     // Other fields
     image: null,
     status: initialData.status || 'maintenanceCompleted'
@@ -106,6 +110,10 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
       } else if (parseFloat(formData.pricePerDay) <= 0) {
         newErrors.pricePerDay = 'El precio debe ser mayor a 0';
       }
+      if (!formData.insurancePhone.trim()) {
+        newErrors.insurancePhone = 'El teléfono de la aseguradora es requerido';
+      }
+
 
       if (!formData.kilometers) {
         newErrors.kilometers = 'Los kilómetros son requeridos';
@@ -117,7 +125,7 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
 
       if (!formData.kmForMaintenance) {
         newErrors.kmForMaintenance = 'Los kilómetros para mantenimiento son requeridos';
-      } 
+      }
     } else {
       // Validaciones completas para creación
       if (!formData.name.trim()) {
@@ -156,7 +164,7 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
 
       if (!formData.kmForMaintenance) {
         newErrors.kmForMaintenance = 'Los kilómetros para mantenimiento son requeridos';
-      } 
+      }
 
       if (!formData.featuresText.trim()) {
         newErrors.features = 'Las características son requeridas';
@@ -200,12 +208,12 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
       kmForMaintenance: parseInt(formData.kmForMaintenance),
       mainImageUrl: formData.mainImageUrl.trim(),
       status: formData.status || 'maintenanceCompleted',
-      
+
       // Process features from text
       features: formData.featuresText
         ? formData.featuresText.split(',').map(f => f.trim()).filter(f => f !== '')
         : [],
-      
+
       // Process image URLs from text
       imageUrls: formData.imageUrlsText
         ? formData.imageUrlsText.split(',').map(url => url.trim()).filter(url => url !== '')
@@ -214,8 +222,8 @@ export const useVehicleForm = (initialData = {}, isEditMode = false) => {
 
     // Remove empty or invalid fields
     Object.keys(submissionData).forEach(key => {
-      if (submissionData[key] === '' || submissionData[key] === null || 
-          (Array.isArray(submissionData[key]) && submissionData[key].length === 0 && key !== 'features')) {
+      if (submissionData[key] === '' || submissionData[key] === null ||
+        (Array.isArray(submissionData[key]) && submissionData[key].length === 0 && key !== 'features')) {
         delete submissionData[key];
       }
     });

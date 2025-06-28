@@ -61,9 +61,13 @@ const transformVehicleData = (apiVehicle) => {
     kilometers: apiVehicle.kilometers,
     kmForMaintenance: apiVehicle.kmForMaintenance || null,
     features: apiVehicle.features || [],
-    image: apiVehicle.mainImageUrl || null,
+    mainImageUrl: apiVehicle.mainImageUrl || '',
     imageUrls: apiVehicle.imageUrls || [],
-    status: apiVehicle.status || 'maintenanceCompleted'
+    status: apiVehicle.status || 'maintenanceCompleted',
+    insurancePhone: apiVehicle.insurancePhone || '',
+    createdAt: apiVehicle.createdAt ? new Date(apiVehicle.createdAt) : null,
+    updatedAt: apiVehicle.updatedAt ? new Date(apiVehicle.updatedAt) : null,
+    maintenanceRecords: apiVehicle.maintenanceRecords || []
   };
 };
 
@@ -83,6 +87,7 @@ const transformVehicleForAPI = (vehicleData) => {
   const name = vehicleData.name?.toString().trim();
   const brand = vehicleData.brand?.toString().trim();
   const model = vehicleData.model?.toString().trim();
+  const insurancePhone = vehicleData.insurancePhone?.toString().trim() || '';
   const capacity = parseInt(vehicleData.capacity);
   const pricePerDay = parseFloat(vehicleData.pricePerDay || vehicleData.price);
   const kilometers = parseInt(vehicleData.kilometers);
@@ -100,6 +105,7 @@ const transformVehicleForAPI = (vehicleData) => {
     capacity,
     pricePerDay,
     kilometers,
+    insurancePhone,
     kmForMaintenance: parseInt(vehicleData.kmForMaintenance),
     features: processedFeatures,
     vehicleType: {
@@ -179,6 +185,10 @@ const transformVehicleForUpdate = (vehicleData) => {
   if (vehicleData.hasOwnProperty('status')) {
     updateData.status = vehicleData.status;
   }
+
+  if (vehicleData.hasOwnProperty('insurancePhone')) {
+  updateData.insurancePhone = vehicleData.insurancePhone?.trim() || '';
+}
   
   // Verificar que al menos hay un campo para actualizar
   if (Object.keys(updateData).length === 0) {

@@ -31,7 +31,7 @@ const VehicleCard = ({ vehicle, isFiltered = false }) => {
         <div className={`bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-xl transition-all duration-300 hover:scale-105 hover:bg-white/15 ${isFiltered ? 'ring-2 ring-white/30' : ''}`}>
             <div className="w-full h-40 bg-gray-200 rounded-lg mb-4 overflow-hidden">
                 <img
-                    src={vehicle.image}
+                    src={vehicle.mainImageUrl}
                     alt={vehicle.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
