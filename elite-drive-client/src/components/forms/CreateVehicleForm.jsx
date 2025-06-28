@@ -24,7 +24,7 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
 
     setFormData(prev => ({
       ...prev,
-      featuresText: value, 
+      featuresText: value,
       features: value ? value.split(',').map(f => f.trim()).filter(f => f !== '') : []
     }));
 
@@ -40,7 +40,7 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
 
   const handleImageUrlsChange = (e) => {
     const value = e.target.value || '';
-    
+
     setFormData(prev => ({
       ...prev,
       imageUrlsText: value,
@@ -58,7 +58,7 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -74,6 +74,7 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
       kilometers: parseInt(formData.kilometers),
       kmForMaintenance: parseInt(formData.kmForMaintenance),
       mainImageUrl: formData.mainImageUrl.trim(),
+      insurancePhone: formData.insurancePhone ? formData.insurancePhone.trim() : '',
       features: formData.featuresText
         ? formData.featuresText.split(',').map(f => f.trim()).filter(f => f !== '')
         : [],
@@ -83,10 +84,11 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
     };
 
     // Validar que todos los campos requeridos estén presentes y sean válidos
-    if (!processedData.name || !processedData.brand || !processedData.model || 
-        !processedData.vehicleType || isNaN(processedData.capacity) || 
-        isNaN(processedData.pricePerDay) || isNaN(processedData.kilometers) ||
-        isNaN(processedData.kmForMaintenance)) {
+    if (!processedData.name || !processedData.brand || !processedData.model ||
+      !processedData.vehicleType || isNaN(processedData.capacity) ||
+      isNaN(processedData.pricePerDay) || isNaN(processedData.kilometers) ||
+      isNaN(processedData.insurancePhone) ||
+      isNaN(processedData.kmForMaintenance)) {
       console.error('Datos procesados inválidos:', processedData);
       return;
     }
@@ -104,7 +106,7 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
 
   return (
     <div className=" border-none p-2">
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Información básica */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -117,9 +119,8 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border text-white/80 bg-neutral-800 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border text-white/80 bg-neutral-800 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.name ? 'border-red-500' : 'border-gray-300'
+                }`}
               placeholder="Ej: Toyota Corolla 2023"
             />
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
@@ -134,9 +135,8 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
               name="brand"
               value={formData.brand}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.brand ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.brand ? 'border-red-500' : 'border-gray-300'
+                }`}
               placeholder="Ej: Toyota"
             />
             {errors.brand && <p className="text-red-500 text-sm mt-1">{errors.brand}</p>}
@@ -151,9 +151,8 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
               name="model"
               value={formData.model}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.model ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.model ? 'border-red-500' : 'border-gray-300'
+                }`}
               placeholder="Ej: Corolla"
             />
             {errors.model && <p className="text-red-500 text-sm mt-1">{errors.model}</p>}
@@ -167,9 +166,8 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
               name="vehicleType"
               value={formData.vehicleType}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded-md bg-neutral-800 text-white/80 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.vehicleType ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-md bg-neutral-800 text-white/80 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.vehicleType ? 'border-red-500' : 'border-gray-300'
+                }`}
             >
               <option value="">Seleccionar tipo</option>
               {vehicleTypes.map(type => (
@@ -192,9 +190,8 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
               onChange={handleChange}
               min="1"
               max="50"
-              className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.capacity ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.capacity ? 'border-red-500' : 'border-gray-300'
+                }`}
               placeholder="Ej: 5"
             />
             {errors.capacity && <p className="text-red-500 text-sm mt-1">{errors.capacity}</p>}
@@ -211,9 +208,8 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
               onChange={handleChange}
               min="0"
               step="0.01"
-              className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.pricePerDay ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.pricePerDay ? 'border-red-500' : 'border-gray-300'
+                }`}
               placeholder="Ej: 50.00"
             />
             {errors.pricePerDay && <p className="text-red-500 text-sm mt-1">{errors.pricePerDay}</p>}
@@ -229,9 +225,8 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
               value={formData.kilometers}
               onChange={handleChange}
               min="0"
-              className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.kilometers ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.kilometers ? 'border-red-500' : 'border-gray-300'
+                }`}
               placeholder="Ej: 15000"
             />
             {errors.kilometers && <p className="text-red-500 text-sm mt-1">{errors.kilometers}</p>}
@@ -247,9 +242,8 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
               value={formData.kmForMaintenance}
               onChange={handleChange}
               min="0"
-              className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.kmForMaintenance ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.kmForMaintenance ? 'border-red-500' : 'border-gray-300'
+                }`}
               placeholder="Ej: 20000"
             />
             {errors.kmForMaintenance && <p className="text-red-500 text-sm mt-1">{errors.kmForMaintenance}</p>}
@@ -266,14 +260,13 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
             value={formData.featuresText || ''}
             onChange={handleFeaturesChange}
             rows="3"
-            className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.features ? 'border-red-500' : 'border-gray-300'
-            }`}
+            className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.features ? 'border-red-500' : 'border-gray-300'
+              }`}
             placeholder="Ej: Aire acondicionado, Bluetooth, GPS, Cámara trasera (separar con comas)"
           />
           <p className="text-sm text-gray-500 mt-1">Separa las características con comas</p>
           {errors.features && <p className="text-red-500 text-sm mt-1">{errors.features}</p>}
-          
+
           {/* Preview de características */}
           {formData.features && formData.features.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -299,9 +292,8 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
             name="mainImageUrl"
             value={formData.mainImageUrl}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.mainImageUrl ? 'border-red-500' : 'border-gray-300'
-            }`}
+            className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.mainImageUrl ? 'border-red-500' : 'border-gray-300'
+              }`}
             placeholder="https://ejemplo.com/imagen-principal.jpg"
           />
           {errors.mainImageUrl && <p className="text-red-500 text-sm mt-1">{errors.mainImageUrl}</p>}
@@ -316,13 +308,30 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
             value={formData.imageUrlsText}
             onChange={handleImageUrlsChange}
             rows="2"
-            className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.imageUrls ? 'border-red-500' : 'border-gray-300'
-            }`}
+            className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.imageUrls ? 'border-red-500' : 'border-gray-300'
+              }`}
             placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg (separar con comas)"
           />
           <p className="text-sm text-gray-500 mt-1">Separa las URLs con comas</p>
           {errors.imageUrls && <p className="text-red-500 text-sm mt-1">{errors.imageUrls}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-200 mb-1">
+            Número telefónico de la aseguradora *
+          </label>
+          <input
+            type="phone"
+            name="insurancePhone"
+            value={formData.insurancePhone}
+            onChange={handleChange}
+            min="1"
+            max="50"
+            className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.insurancePhone ? 'border-red-500' : 'border-gray-300'
+              }`}
+            placeholder="Ej: 5"
+          />
+          {errors.insurancePhone && <p className="text-red-500 text-sm mt-1">{errors.insurancePhone}</p>}
         </div>
 
         {/* Botones */}

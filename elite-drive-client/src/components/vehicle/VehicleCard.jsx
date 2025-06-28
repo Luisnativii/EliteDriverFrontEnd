@@ -143,9 +143,9 @@ const statusConfig = getStatusConfig(effectiveStatus);
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
         {/* Imagen del vehículo */}
         <div className="aspect-w-16 aspect-h-9 bg-gray-200">
-          {vehicle.image ? (
+          {vehicle.mainImageUrl ? (
             <img
-              src={vehicle.image}
+              src={vehicle.mainImageUrl}
               alt={`${vehicle.brand} ${vehicle.model}`}
               className="w-full h-48 object-cover"
               onError={(e) => {

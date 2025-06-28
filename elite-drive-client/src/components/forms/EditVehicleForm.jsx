@@ -13,14 +13,26 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
     setErrors
   } = useVehicleForm(vehicle, true); // true = modo edición
 
+  const formatNumberWithCommas = (num) => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  };
+
+  // Función para remover comas del número
+  const removeCommas = (str) => {
+    return str.replace(/,/g, '');
+  };
+
   // Manejar cambio de kilómetros sin validación en tiempo real
   const handleKilometersChange = (e) => {
     const value = e.target.value;
-    const numericValue = value.replace(/\D/g, '');
+    const cleanValue = value.replace(/[^\d,]/g, '');
+    // Remover comas para obtener solo números
+    const numericValue = removeCommas(cleanValue);
 
     setFormData(prev => ({
       ...prev,
-      kilometers: numericValue
+       kilometers: numericValue, // Guardar sin comas para la base de datos
+    kilometersDisplay: numericValue ? formatNumberWithCommas(numericValue) : '' // Para mostrar con comas
     }));
 
     // Limpiar error específico cuando el usuario empieza a escribir
@@ -82,15 +94,15 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     console.log('🔍 Datos del formulario antes de enviar:', formData);
-    
+
     // Validación especial para kilómetros en el submit
     if (vehicle.kilometers && parseInt(formData.kilometers) < parseInt(vehicle.kilometers)) {
       alert(`Los kilómetros no pueden ser menores a ${vehicle.kilometers}`);
       return;
     }
-    
+
     if (!validateForm()) {
       console.log('❌ Validación falló, errores:', errors);
       return;
@@ -131,7 +143,7 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
 
   return (
     <div className="border-none p-2">
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Información no editable - mostrar como texto */}
         <div className="p-4 rounded-lg mb-6">
@@ -207,9 +219,8 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
                 name="pricePerDay"
                 value={formData.pricePerDay}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none text-white focus:ring-2 focus:ring-gray-500 ${
-                  errors.pricePerDay ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none text-white focus:ring-2 focus:ring-gray-500 ${errors.pricePerDay ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="Ej: 50.00"
               />
               {errors.pricePerDay && <p className="text-red-500 text-sm mt-1">{errors.pricePerDay}</p>}
@@ -217,46 +228,19 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
 
             <div>
               <label className="block text-sm font-medium text-gray-200 mb-1">
-                Kilómetros Actuales * 
+                Kilómetros Actuales *
                 <span className="text-sm text-gray-400"> (mínimo: {vehicle.kilometers})</span>
               </label>
               <input
                 type="text"
                 name="kilometers"
-                value={formData.kilometers}
+                value={formData.kilometersDisplay || formData.kilometers}
                 onChange={handleKilometersChange}
-                className={`w-full px-3 py-2 border rounded-md text-white focus:outline-none focus:ring-2 focus:ring-gray-500 ${
-                  errors.kilometers ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder={`Mínimo ${vehicle.kilometers}`}
+                className={`w-full px-3 py-2 border rounded-md text-white focus:outline-none focus:ring-2 focus:ring-gray-500 ${errors.kilometers ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                 placeholder={`Mínimo ${vehicle.kilometers ? formatNumberWithCommas(vehicle.kilometers.toString()) : ''}`}
               />
-              
-              {/* Información de mantenimiento */}
-              {formData.kilometers && vehicle.kmForMaintenance && (() => {
-                const maintenanceInfo = calculateNextMaintenance();
-                if (!maintenanceInfo) return null;
 
-                return (
-                  <div className="mt-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <div className="flex items-center mb-1">
-                      <AlertCircle className="w-4 h-4 text-blue-400 mr-2" />
-                      <span className="text-sm font-medium text-blue-200">
-                        Información de Mantenimiento
-                      </span>
-                    </div>
-                    <div className="text-xs text-blue-300 space-y-1">
-                      <p>Próximo mantenimiento: {maintenanceInfo.nextMaintenanceKm.toLocaleString()} km</p>
-                      {maintenanceInfo.isMaintenanceNeeded ? (
-                        <p className="text-red-300 font-medium">
-                          ⚠️ Mantenimiento requerido ahora
-                        </p>
-                      ) : (
-                        <p>Faltan: {maintenanceInfo.kmUntilMaintenance.toLocaleString()} km</p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
 
               {errors.kilometers && <p className="text-red-500 text-sm mt-1">{errors.kilometers}</p>}
             </div>
@@ -277,7 +261,7 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
             placeholder="Ej: Aire acondicionado, Bluetooth, GPS, Cámara trasera (separar con comas)"
           />
           <p className="text-sm text-gray-500 mt-1">Separa las características con comas</p>
-          
+
           {/* Preview de características */}
           {formData.features && formData.features.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -321,6 +305,24 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
             placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg (separar con comas)"
           />
           <p className="text-sm text-gray-500 mt-1">Separa las URLs con comas</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-200 mb-1">
+            Número telefónico de la aseguradora *
+          </label>
+          <input
+            type="phone"
+            name="insurancePhone"
+            value={formData.insurancePhone}
+            onChange={handleChange}
+            min="1"
+            max="50"
+            className={`w-full px-3 py-2 border rounded-md text-white/80 bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.insurancePhone ? 'border-red-500' : 'border-gray-300'
+              }`}
+            placeholder="Ej: 5"
+          />
+          {errors.insurancePhone && <p className="text-red-500 text-sm mt-1">{errors.insurancePhone}</p>}
         </div>
 
         {/* Botones */}

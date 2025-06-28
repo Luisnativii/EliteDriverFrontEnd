@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useVehicleMaintenance } from '../../hooks/useVehicleMaintenance';
 import LoadingSpinner from '../../components/layout/LoadingSpinner';
 import { 
@@ -11,8 +11,11 @@ import {
 
 import StatusColumn from '../../components/admin/StatusColumn';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import MaintenanceHistoryWindow from '../../components/vehicle/MaintenanceHistoryModal';
 
 const MaintenancePage = () => {
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
+  
   const {
     // Estados
     loading,
@@ -46,6 +49,14 @@ const MaintenancePage = () => {
     draggedVehicle,
     dragOverColumn
   } = useVehicleMaintenance();
+
+  const handleViewHistory = (vehicle) => {
+    setSelectedVehicle(vehicle);
+  };
+
+  const handleCloseHistory = () => {
+    setSelectedVehicle(null);
+  };
 
   // Mostrar loading mientras se cargan auth y vehículos
   if (loading || authLoading) {
@@ -153,6 +164,7 @@ const MaintenancePage = () => {
                 <h3 className="text-white font-semibold mb-2">Instrucciones de uso</h3>
                 <div className="text-white/70 text-sm space-y-1">
                   <p>• Arrastra y suelta los vehículos entre columnas para cambiar su estado de mantenimiento</p>
+                  <p>• Haz clic en el icono de ojo para ver el historial de mantenimiento en la ventana lateral</p>
                   <p>• Los cambios se guardan automáticamente al soltar el vehículo</p>
                   <p>• Usa los filtros para encontrar vehículos específicos</p>
                   <p>• Los cambios críticos (como "Fuera de Servicio") requieren confirmación</p>
@@ -192,8 +204,6 @@ const MaintenancePage = () => {
           </div>
         )}
 
-        
-
         {/* Columnas Kanban */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
           {Object.entries(statusColumns).map(([status, config]) => (
@@ -210,11 +220,10 @@ const MaintenancePage = () => {
               draggedVehicle={draggedVehicle}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
+              onViewHistory={handleViewHistory}
             />
           ))}
         </div>
-
-        
 
         {/* Dialog de confirmación */}
         <ConfirmDialog
@@ -223,6 +232,14 @@ const MaintenancePage = () => {
           onConfirm={handleConfirmStatusChange}
           onCancel={handleCancelStatusChange}
         />
+
+        {/* Ventana de historial de mantenimiento */}
+        {selectedVehicle && (
+          <MaintenanceHistoryWindow
+            vehicle={selectedVehicle}
+            onClose={handleCloseHistory}
+          />
+        )}
       </div>
     </div>
   );
