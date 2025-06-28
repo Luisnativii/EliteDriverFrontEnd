@@ -89,18 +89,17 @@ const CreateVehicleForm = ({ onSubmit, onCancel, submitLoading = false }) => {
       isNaN(processedData.pricePerDay) || isNaN(processedData.kilometers) ||
       isNaN(processedData.insurancePhone) ||
       isNaN(processedData.kmForMaintenance)) {
-      console.error('Datos procesados inválidos:', processedData);
       return;
     }
 
-    console.log('Datos a enviar:', processedData); // Para debug
+    // console.log('Datos a enviar:', processedData); // Para debug
 
     try {
       await onSubmit(processedData);
       resetForm();
     } catch (error) {
       // El error se maneja en el componente padre
-      console.error('Error al crear vehículo:', error);
+      // console.error('Error al crear vehículo:', error);
     }
   };
 

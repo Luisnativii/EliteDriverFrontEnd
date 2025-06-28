@@ -1,1 +1,0 @@
-// Manejo de estado y efectos para componentes React

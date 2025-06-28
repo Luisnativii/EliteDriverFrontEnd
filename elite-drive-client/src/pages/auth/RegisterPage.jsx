@@ -10,7 +10,7 @@ const RegisterPage = () => {
   };
 
   const handleRegistrationSuccess = () => {
-    console.log('Usuario registrado exitosamente');
+    //console.log('Usuario registrado exitosamente');
   };
 
   return (

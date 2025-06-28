@@ -35,7 +35,6 @@ export const useVehicleManagement = () => {
         try {
             setReservationsLoading(true);
             setReservationsError(null);
-            console.log('🔍 Obteniendo todas las reservas...');
 
             // Usar getAllReservations igual que en ReservationManagementPage
             const reservationsData = await ReservationService.getAllReservations();
@@ -64,11 +63,10 @@ export const useVehicleManagement = () => {
                 }
             }));
 
-            console.log('📋 Reservas transformadas:', transformedReservations.length);
             setReservations(transformedReservations);
 
         } catch (err) {
-            console.error('❌ Error al cargar reservas:', err);
+            // console.error('❌ Error al cargar reservas:', err);
             setReservationsError(err.message || 'Error al cargar las reservas');
             setReservations([]);
         } finally {
@@ -113,21 +111,6 @@ export const useVehicleManagement = () => {
             return startDate <= toDate && endDate >= fromDate;
         });
 
-        console.log('🗓️ Reservas en rango de fechas:', {
-            fromDate: reservationDateFrom,
-            toDate: reservationDateTo,
-            totalReservations: reservations.length,
-            filteredCount: filteredReservations.length,
-            filtered: filteredReservations.map(r => ({
-                id: r.id,
-                vehicleName: r.vehicle.name,
-                vehicleId: r.vehicle.id,
-                startDate: r.startDate,
-                endDate: r.endDate,
-                status: r.status
-            }))
-        });
-
         return filteredReservations;
     }, [reservations, reservationDateFrom, reservationDateTo]);
 
@@ -140,7 +123,6 @@ export const useVehicleManagement = () => {
         // Eliminar duplicados
         const uniqueIds = [...new Set(ids)];
 
-        console.log('🚗 IDs de vehículos reservados:', uniqueIds);
         return uniqueIds;
     }, [reservationsInDateRange]);
 
@@ -165,17 +147,8 @@ export const useVehicleManagement = () => {
         return statuses;
     }, [reservedVehicleIds]);
 
-
-
     // Filtrar vehículos basado en búsqueda y filtro
     const filteredVehicles = useMemo(() => {
-        console.log('🔍 Filtrando vehículos...');
-        console.log('📊 Total vehículos:', vehicles.length);
-        console.log('🔍 Término de búsqueda:', searchTerm);
-        console.log('🏷️ Filtro de tipo:', filterType);
-        console.log('📈 Filtro de estado:', statusFilter);
-        console.log('🚗 IDs reservados activos:', reservedVehicleIds);
-
         const filtered = vehicles.filter(vehicle => {
             // Filtro de búsqueda
             const matchesSearch = searchTerm === '' ||
@@ -194,22 +167,11 @@ export const useVehicleManagement = () => {
                 matchesStatus = statuses.includes(statusFilter);
             }
 
-
-            const passes = matchesSearch && matchesFilter && matchesStatus;
-
-            if (statusFilter === 'reserved' && passes) {
-                console.log(`✅ Vehículo ${vehicle.name} pasa todos los filtros para 'reserved'`);
-            }
-
-            return passes;
+            return matchesSearch && matchesFilter && matchesStatus;
         });
 
-        console.log('📋 Vehículos filtrados:', filtered.length);
-
-
-
         return filtered;
-    }, [vehicles, searchTerm, filterType, statusFilter, getVehicleStatuses, reservedVehicleIds]);
+    }, [vehicles, searchTerm, filterType, statusFilter, getVehicleStatuses]);
 
     const getEffectiveVehicleStatus = useCallback((vehicle) => {
         // Si requiere mantenimiento o está fuera de servicio, devolver ese estado
@@ -222,8 +184,6 @@ export const useVehicleManagement = () => {
 
         return vehicle.status || 'maintenanceCompleted';
     }, [reservedVehicleIds]);
-
-
 
     // Obtener tipos únicos para el filtro
     const uniqueTypes = useMemo(() => {
@@ -253,7 +213,6 @@ export const useVehicleManagement = () => {
             }).length
         };
 
-        console.log('📊 Status counts:', counts);
         return counts;
     }, [vehicles, reservedVehicleIds, getEffectiveVehicleStatus]);
 
@@ -278,7 +237,6 @@ export const useVehicleManagement = () => {
             alert('Solo los administradores pueden editar vehículos');
             return;
         }
-        console.log('🔧 Editando vehículo:', vehicle.name, 'isEditing:', isEditing);
         setEditingVehicle(vehicle);
         setShowForm(true);
     }, [hasAdminRole]);
@@ -294,7 +252,7 @@ export const useVehicleManagement = () => {
                 handleFormSuccess();
             });
         } catch (error) {
-            console.error('Error al crear vehículo:', error);
+            //console.error('Error al crear vehículo:', error);
             // El error ya se maneja en el hook
         }
     }, [createVehicle, handleFormSuccess]);
@@ -305,20 +263,18 @@ export const useVehicleManagement = () => {
                 handleFormSuccess();
             });
         } catch (error) {
-            console.error('Error al actualizar vehículo:', error);
+            //console.error('Error al actualizar vehículo:', error);
             // El error ya se maneja en el hook
         }
     }, [updateVehicle, handleFormSuccess]);
 
     const handleRefresh = useCallback(() => {
-        console.log('🔄 Refrescando datos...');
         refetch();
         // También refrescar las reservaciones
         fetchAllReservations();
     }, [refetch, fetchAllReservations]);
 
     const handleStatusFilterClick = useCallback((status) => {
-        console.log('🔄 Cambiando filtro de estado a:', status);
         setStatusFilter(status);
         // Limpiar otros filtros para mostrar solo por estado
         setSearchTerm('');
@@ -327,12 +283,10 @@ export const useVehicleManagement = () => {
 
     // Handlers para los filtros de fecha
     const handleReservationDateFromChange = useCallback((date) => {
-        console.log('📅 Cambiando fecha desde:', date);
         setReservationDateFrom(date);
     }, []);
 
     const handleReservationDateToChange = useCallback((date) => {
-        console.log('📅 Cambiando fecha hasta:', date);
         setReservationDateTo(date);
     }, []);
 

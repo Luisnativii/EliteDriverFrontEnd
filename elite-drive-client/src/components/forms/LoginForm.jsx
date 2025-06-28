@@ -25,21 +25,16 @@ const LoginForm = ({ onRegisterClick }) => {
 
     try {
       // Step 1: Authenticate with server via authService
-      console.log('LoginForm - Iniciando autenticación...');
       const authData = await login(form);
-      console.log('LoginForm - Datos recibidos del servidor:', authData);
 
       // Step 2: Update context with the authenticated user data
-      console.log('LoginForm - Actualizando contexto...');
       const contextResult = await loginContext(authData);
 
       if (contextResult.success) {
         const redirectTo = location.state?.redirectTo;
         const userRole = authData.user?.role?.toLowerCase();
-        console.log('LoginForm - Rol del usuario:', userRole);
 
         if (redirectTo) {
-          console.log('Redirigiendo al destino guardado:', redirectTo);
           navigate(redirectTo, { replace: true });
         } else if (userRole === 'admin') {
           navigate('/admin');
@@ -51,7 +46,6 @@ const LoginForm = ({ onRegisterClick }) => {
       }
 
     } catch (err) {
-      console.error('LoginForm - Error en login:', err);
       setError(err.message || 'Credenciales inválidas');
     } finally {
       setIsLoading(false);

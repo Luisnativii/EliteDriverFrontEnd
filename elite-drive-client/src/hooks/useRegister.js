@@ -164,11 +164,11 @@ export const useRegister = () => {
         try {
             // Formatear datos para la API
             const formattedData = formatDataForAPI(formData);
-            console.log('Datos formateados para API:', formattedData);
+            // console.log('Datos formateados para API:', formattedData);
             
             // Llamar al servicio de registro
             const response = await register(formattedData);
-            console.log('Registro exitoso:', response);
+            // console.log('Registro exitoso:', response);
             
             // Reset form después del éxito
             setFormData({
@@ -188,7 +188,7 @@ export const useRegister = () => {
             }
             
         } catch (error) {
-            console.error('Error en el registro:', error);
+            // console.error('Error en el registro:', error);
             
             // Manejar errores específicos
             if (error.message) {

@@ -18,13 +18,9 @@ authApi.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log('Request:', config.method.toUpperCase(), config.url);
-    console.log('Request headers:', config.headers);
-    console.log('Request data:', config.data);
     return config;
   },
   (error) => {
-    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -32,19 +28,9 @@ authApi.interceptors.request.use(
 // Interceptor para responses - manejar errores globalmente
 authApi.interceptors.response.use(
   (response) => {
-    console.log('Response success:', response.status, response.data);
     return response;
   },
   (error) => {
-    console.error('Response error details:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      headers: error.response?.headers,
-      url: error.config?.url,
-      method: error.config?.method
-    });
-    
     if (error.response?.status === 401) {
       // Token expirado o inválido
       localStorage.removeItem('authToken');
@@ -57,10 +43,7 @@ authApi.interceptors.response.use(
 
 export const login = async (credentials) => {
   try {
-    console.log('Iniciando login para:', credentials.email);
-    
     const response = await authApi.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
-    console.log('Login response:', response.data);
     
     // Verificar que la respuesta tenga el formato esperado
     if (response.data && response.data.token && response.data.user) {
@@ -68,16 +51,12 @@ export const login = async (credentials) => {
       localStorage.setItem('authToken', response.data.token);
       localStorage.setItem('userData', JSON.stringify(response.data.user));
       
-      console.log('Login exitoso, datos guardados');
       return response.data;
     } else {
-      console.error('Formato de respuesta inválido:', response.data);
       throw new Error('Formato de respuesta inválido del servidor');
     }
     
   } catch (error) {
-    console.error('Error en login:', error);
-    
     // Manejar diferentes tipos de errores
     if (error.response) {
       // El servidor respondió con un error
@@ -95,33 +74,15 @@ export const login = async (credentials) => {
 
 export const register = async (userData) => {
   try {
-    console.log('Iniciando registro para:', userData.email);
-    console.log('Datos a enviar:', userData);
-    console.log('URL completa:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`);
-    
-    //const response = await authApi.post(API_ENDPOINTS.AUTH.REGISTER, userData);
-    
-    //return response.data;
     const response = await axios.post('/api/auth/register', userData, {
         headers: {
             'Content-Type': 'application/json'
             // NO incluir Authorization aquí
         }
     });
-    console.log('Registro exitoso:', response.data);
     return response.data;
     
   } catch (error) {
-    console.error('Error en registro - Detalles completos:', {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      responseData: error.response?.data,
-      requestUrl: error.config?.url,
-      requestMethod: error.config?.method,
-      requestData: error.config?.data
-    });
-    
     // Crear mensaje de error específico basado en el código de estado
     let errorMessage = 'Error al registrar usuario. Intenta nuevamente.';
     
@@ -172,7 +133,6 @@ export const register = async (userData) => {
 };
 
 export const logout = () => {
-  console.log('Cerrando sesión');
   localStorage.removeItem('authToken');
   localStorage.removeItem('userData');
   window.location.href = '/'; //redirigir al homepage en vez del login
@@ -192,7 +152,6 @@ export const validateToken = async () => {
     const response = await authApi.get('/api/auth/validate');
     return response.data.valid;
   } catch (error) {
-    console.error('Error validando token:', error);
     return false;
   }
 };

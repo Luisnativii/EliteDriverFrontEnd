@@ -167,7 +167,7 @@ export const useVehicleMaintenance = () => {
         refetch();
       });
     } catch (error) {
-      console.error('Error al actualizar estado del vehículo:', error);
+      // console.error('Error al actualizar estado del vehículo:', error);
       alert('Error al actualizar el estado del vehículo: ' + error.message);
     }
   }, [updateVehicle, refetch]);

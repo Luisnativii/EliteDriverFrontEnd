@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error('Error loading user:', error);
+        // console.error('Error loading user:', error);
         localStorage.removeItem('authToken');
         localStorage.removeItem('userData');
       } finally {
@@ -57,7 +57,6 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: 'Invalid auth data' };
       }
     } catch (error) {
-      console.error('Login context error:', error);
       return { success: false, error: 'Error updating context' };
     }
   };

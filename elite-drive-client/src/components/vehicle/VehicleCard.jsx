@@ -3,6 +3,7 @@ import { useVehicleOperations } from '../../hooks/useVehicles';
 import {
   Edit2,
   Trash2,
+  Loader2,
   Users,
   MapPin,
   DollarSign,
@@ -33,7 +34,7 @@ const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
       setIsDeleting(true);
 
       await deleteVehicle(vehicle.id, () => {
-        console.log(`✅ Vehículo ${vehicle.name} eliminado exitosamente`);
+        // console.log(`✅ Vehículo ${vehicle.name} eliminado exitosamente`);
         setShowDeleteConfirm(false);
 
         // Refrescar la lista de vehículos
@@ -43,7 +44,7 @@ const VehicleCard = ({ vehicle, onEdit, onRefresh, isAdmin = false }) => {
       });
 
     } catch (error) {
-      console.error('Error eliminando vehículo:', error);
+      // console.error('Error eliminando vehículo:', error);
       alert(error.message || 'Error al eliminar el vehículo');
     } finally {
       setIsDeleting(false);

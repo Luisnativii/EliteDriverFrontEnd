@@ -6,13 +6,11 @@ export const useCarTypes = () => {
 
   const fetchCarTypes = async () => {
     try {
-      console.log('🏷️ Iniciando carga de tipos de vehículos...');
       setLoading(true);
       setError(null);
 
       // Ajusta esta URL según tu endpoint de tipos de vehículos
       const response = await vehicleApi.get('/car-types'); // o '/cartypes' según tu API
-      console.log('📋 Tipos de vehículos recibidos:', response.data);
       
       if (!Array.isArray(response.data)) {
         throw new Error('La respuesta no es un array válido');
@@ -21,8 +19,6 @@ export const useCarTypes = () => {
       setCarTypes(response.data);
 
     } catch (err) {
-      console.error('💥 Error fetching car types:', err);
-      
       let errorMessage;
       if (err.response?.status === 403) {
         errorMessage = 'No tienes permisos para ver los tipos de vehículos.';
@@ -30,7 +26,6 @@ export const useCarTypes = () => {
         errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
       } else if (err.response?.status === 404) {
         // Si no existe el endpoint, usar datos por defecto
-        console.warn('⚠️ Endpoint de tipos no encontrado, usando datos por defecto');
         setCarTypes([
           { type: 'Sedán' },
           { type: 'SUV' },

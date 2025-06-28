@@ -95,8 +95,6 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log('🔍 Datos del formulario antes de enviar:', formData);
-
     // Validación especial para kilómetros en el submit
     if (vehicle.kilometers && parseInt(formData.kilometers) < parseInt(vehicle.kilometers)) {
       alert(`Los kilómetros no pueden ser menores a ${vehicle.kilometers}`);
@@ -104,7 +102,7 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
     }
 
     if (!validateForm()) {
-      console.log('❌ Validación falló, errores:', errors);
+      // console.log('❌ Validación falló, errores:', errors);
       return;
     }
 
@@ -121,14 +119,9 @@ const EditVehicleForm = ({ vehicle, onSubmit, onCancel, submitLoading = false })
         : []
     };
 
-    console.log('🚀 Enviando datos de actualización:', updateData);
-    console.log('🆔 ID del vehículo:', vehicle.id);
-
     try {
       await onSubmit(vehicle.id, updateData);
-      console.log('✅ Actualización exitosa');
     } catch (error) {
-      console.error('❌ Error al actualizar vehículo:', error);
       alert(`Error al actualizar el vehículo: ${error.message}`);
     }
   };

@@ -181,7 +181,7 @@ class ReservationService {
                 return currentDate >= startDate && currentDate <= endDate;
             });
         } catch (error) {
-            console.error('Error al obtener reservaciones de hoy:', error);
+            // console.error('Error al obtener reservaciones de hoy:', error);
             return [];
         }
     }
@@ -196,7 +196,7 @@ class ReservationService {
                 reservation.vehicle_id === vehicleId
             );
         } catch (error) {
-            console.error('Error al verificar reservación del vehículo:', error);
+            // console.error('Error al verificar reservación del vehículo:', error);
             return false;
         }
     }
@@ -211,26 +211,17 @@ class ReservationService {
                     reservation.vehicle_id)
                 .filter(Boolean); // Filtrar valores null/undefined
         } catch (error) {
-            console.error('Error al obtener IDs de vehículos reservados:', error);
+            // console.error('Error al obtener IDs de vehículos reservados:', error);
             return [];
         }
     }
 
     static async getReservedVehicleIdsInRange(startDate, endDate) {
         try {
-            console.log('🔍 Obteniendo IDs de vehículos reservados entre:', startDate, 'y', endDate);
-
             const activeReservations = await this.getActiveReservationsInRange(startDate, endDate);
             const reservedIds = activeReservations
                 .map(reservation => {
                     const vehicleId = reservation.vehicle?.id;
-                    console.log('🚗 Reservación encontrada:', {
-                        id: reservation.id,
-                        vehicleId,
-                        vehicleName: reservation.vehicle?.name,
-                        startDate: reservation.startDate,
-                        endDate: reservation.endDate
-                    });
                     return vehicleId;
                 })
                 .filter(Boolean);
@@ -238,10 +229,9 @@ class ReservationService {
             // Eliminar duplicados si un vehículo tiene múltiples reservaciones
             const uniqueReservedIds = [...new Set(reservedIds)];
 
-            console.log('✅ IDs únicos de vehículos reservados:', uniqueReservedIds);
             return uniqueReservedIds;
         } catch (error) {
-            console.error('❌ Error al obtener vehículos reservados en el rango:', error);
+            //console.error('❌ Error al obtener vehículos reservados en el rango:', error);
             return [];
         }
     }

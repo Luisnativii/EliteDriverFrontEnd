@@ -1,1 +1,0 @@
-//  suv, sedan, pickup etc      # RECURSOS COMPARTIDOS

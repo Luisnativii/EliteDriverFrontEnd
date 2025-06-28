@@ -104,7 +104,7 @@ export const useDashboard = () => {
         weeklyTrend
       };
     } catch (error) {
-      console.error('Error fetching reservations data:', error);
+      // console.error('Error fetching reservations data:', error);
       throw error;
     }
   }, []);
@@ -183,7 +183,7 @@ export const useDashboard = () => {
         statusBreakdown
       };
     } catch (error) {
-      console.error('Error fetching vehicles data:', error);
+      // console.error('Error fetching vehicles data:', error);
       throw error;
     }
   }, []);
@@ -260,7 +260,7 @@ export const useDashboard = () => {
         weeklyRevenue
       };
     } catch (error) {
-      console.error('Error fetching revenue data:', error);
+      // console.error('Error fetching revenue data:', error);
       throw error;
     }
   }, []);
@@ -322,7 +322,7 @@ export const useDashboard = () => {
         alerts
       };
     } catch (error) {
-      console.error('Error fetching maintenance data:', error);
+      // console.error('Error fetching maintenance data:', error);
       throw error;
     }
   }, []);
@@ -349,7 +349,7 @@ export const useDashboard = () => {
 
       return recentReservations;
     } catch (error) {
-      console.error('Error fetching recent activity:', error);
+      // console.error('Error fetching recent activity:', error);
       return [];
     }
   }, []);
@@ -388,7 +388,7 @@ export const useDashboard = () => {
         recentActivity
       });
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      // console.error('Error fetching dashboard data:', error);
       setError('Error al cargar los datos del dashboard');
     } finally {
       setLoading(false);

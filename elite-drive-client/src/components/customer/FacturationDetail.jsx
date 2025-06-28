@@ -67,7 +67,6 @@ const FacturationDetail = ({ vehicle }) => {
         }
     }, [startDate, endDate, vehicle]);
     const handleReservation = async () => {
-        console.log('🚀 Enviando reserva');
         setErrors([]);
         if (!vehicle || !vehicle.id) {
             setErrors(['❌ No se pudo obtener la información del vehículo. Intenta nuevamente.']);
