@@ -110,6 +110,10 @@ elite-drive-frontend/
 └── package.json
 ```
 
+---
+
+## Diagrama de la Bace de datos
+
 ![WhatsApp Image 2025-06-29 at 22 42 21_522a0a7e](https://github.com/user-attachments/assets/f016631c-9c9b-4900-8f55-af3ca904c4c9)
 
 
