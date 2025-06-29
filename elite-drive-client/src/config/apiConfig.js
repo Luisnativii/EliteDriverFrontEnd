@@ -1,6 +1,5 @@
 // config/apiConfig.js
-export const API_BASE_URL =  import.meta.env.VITE_API_BASE_URL || '/api'; // Cambiado: puerto 8080 y agregado /api
-// export const API_BASE_URL = 'http://localhost:8080/api'; // URL completa para desarrollo
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 // Configuración de endpoints
 export const API_ENDPOINTS = {

@@ -74,7 +74,7 @@ export const login = async (credentials) => {
 
 export const register = async (userData) => {
   try {
-    const response = await axios.post('/api/auth/register', userData, {
+    const response = await authApi.post(API_ENDPOINTS.AUTH.REGISTER, userData, {
         headers: {
             'Content-Type': 'application/json'
             // NO incluir Authorization aquí
