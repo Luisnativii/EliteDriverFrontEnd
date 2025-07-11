@@ -14,6 +14,15 @@ const DateForm = ({ variant = 'default', onSearch }) => {
         }
     };
 
+    // Obtener fecha y hora actual
+    const now = new Date();
+    const isAfterNoon = now.getHours() >= 12;
+
+    const todayISO = now.toISOString().split('T')[0];
+    const tomorrowISO = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const minStartDate = isAfterNoon ? tomorrowISO : todayISO;
+
     // Estilos para la variante de home (glassmorphism)
     const homeStyles = {
         container: `
@@ -62,18 +71,17 @@ const DateForm = ({ variant = 'default', onSearch }) => {
 
     const styles = variant === 'home' ? homeStyles : vehiclesStyles;
 
+    // Variante compacta (en línea) para selector de vehículos
     if (variant === 'vehicles') {
         return (
             <div className={styles.container}>
-            
-                
                 <div>
                     <label className={styles.label}>Desde:</label>
                     <input
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        min={new Date().toISOString().split('T')[0]}
+                        min={minStartDate}
                         className={styles.input}
                     />
                 </div>
@@ -84,7 +92,7 @@ const DateForm = ({ variant = 'default', onSearch }) => {
                         type="date"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        min={startDate || new Date().toISOString().split('T')[0]}
+                        min={startDate || minStartDate}
                         className={styles.input}
                     />
                 </div>
@@ -92,50 +100,41 @@ const DateForm = ({ variant = 'default', onSearch }) => {
         );
     }
 
-    // Layout original para la variante home
+    // Variante para home con diseño glassmorphism
     return (
         <div className={`${styles.container} flex flex-col sm:flex-row gap-4`}>
+            <div className="flex-1">
+                <label className={styles.label}>Desde:</label>
+                <input
+                    type="date"
+                    placeholder={window.innerWidth < 640 ? "dd/mm/aaaa" : undefined}
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    min={minStartDate}
+                    className={styles.input}
+                />
+            </div>
 
-    <div className="flex-1">
-        <label className={styles.label}>Desde:</label>
-        <input
-  type="date"
-  placeholder={window.innerWidth < 640 ? "dd/mm/aaaa" : undefined}
-  value={startDate}
-  onChange={(e) => setStartDate(e.target.value)}
-  min={new Date().toISOString().split('T')[0]}
-  className={styles.input}
-/>
+            <div className="flex-1">
+                <label className={styles.label}>Hasta:</label>
+                <input
+                    type="date"
+                    placeholder={window.innerWidth < 640 ? "dd/mm/aaaa" : undefined}
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    min={startDate || minStartDate}
+                    className={styles.input}
+                />
+            </div>
 
-
-    </div>
-
-    <div className="flex-1">
-        <label className={styles.label}>Hasta:</label>
-        <input
-  type="date"
-  placeholder={window.innerWidth < 640 ? "dd/mm/aaaa" : undefined}
-  value={endDate}
-  onChange={(e) => setEndDate(e.target.value)}
-  min={startDate || new Date().toISOString().split('T')[0]}
-  className={styles.input}
-/>
-
-
-    </div>
-
-    {/* 🔘 Botón de búsqueda */}
-    <button
-        type="button"
-        onClick={handleSearch}
-        className={`${styles.button} mt-4 sm:mt-0 sm:col-span-2`}
-    >
-        Buscar Vehículos
-    </button>
-
-</div>
-
-
+            <button
+                type="button"
+                onClick={handleSearch}
+                className={`${styles.button} mt-4 sm:mt-0 sm:col-span-2`}
+            >
+                Buscar Vehículos
+            </button>
+        </div>
     );
 };
 
