@@ -17,10 +17,11 @@ const DateForm = ({ variant = 'default', onSearch }) => {
     // Estilos para la variante de home (glassmorphism)
     const homeStyles = {
         container: `
-            bg-white/10 backdrop-blur-md py-6 px-8 rounded-3xl 
-            shadow-2xl border border-white/20 min-w-[700px] 
-            hover:bg-white/15 transition-all duration-300
-        `,
+        w-full max-w-[700px] mx-auto
+        bg-white/10 backdrop-blur-md py-6 px-6 sm:px-8 rounded-3xl 
+        shadow-2xl border border-white/20
+        hover:bg-white/15 transition-all duration-300
+    `,
         title: "text-white text-lg font-semibold mb-4 text-center",
         label: "text-white/90 font-medium text-sm block mb-2",
         input: `
@@ -93,48 +94,42 @@ const DateForm = ({ variant = 'default', onSearch }) => {
 
     // Layout original para la variante home
     return (
-        <div className={styles.container}>
-            <h3 className={styles.title}>
-                Reserva tu vehículo
-            </h3>
-            
-            <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                        <label className={styles.label}>
-                            Desde:
-                        </label>
-                        <input
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            min={new Date().toISOString().split('T')[0]}
-                            className={styles.input}
-                        />
-                    </div>
+        <div className={`${styles.container} flex flex-col sm:flex-row gap-4`}>
 
-                    <div className="flex-1">
-                        <label className={styles.label}>
-                            Hasta:
-                        </label>
-                        <input
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            min={startDate || new Date().toISOString().split('T')[0]}
-                            className={styles.input}
-                        />
-                    </div>
-                </div>
+    <div className="flex-1">
+        <label className={styles.label}>Desde:</label>
+        <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            min={new Date().toISOString().split('T')[0]}
+            className={styles.input}
+        />
+    </div>
 
-                <button 
-                    onClick={handleSearch}
-                    className={styles.button}
-                >
-                    Buscar Vehículos
-                </button>
-            </div>
-        </div>
+    <div className="flex-1">
+        <label className={styles.label}>Hasta:</label>
+        <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            min={startDate || new Date().toISOString().split('T')[0]}
+            className={styles.input}
+        />
+    </div>
+
+    {/* 🔘 Botón de búsqueda */}
+    <button
+        type="button"
+        onClick={handleSearch}
+        className={`${styles.button} mt-4 sm:mt-0 sm:col-span-2`}
+    >
+        Buscar Vehículos
+    </button>
+
+</div>
+
+
     );
 };
 
