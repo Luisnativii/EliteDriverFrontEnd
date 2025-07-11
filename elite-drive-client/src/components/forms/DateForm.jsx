@@ -99,23 +99,27 @@ const DateForm = ({ variant = 'default', onSearch }) => {
     <div className="flex-1">
         <label className={styles.label}>Desde:</label>
         <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            min={new Date().toISOString().split('T')[0]}
-            className={styles.input}
-        />
+  type="date"
+  value={startDate}
+  onChange={(e) => setStartDate(e.target.value)}
+  min={new Date().toISOString().split('T')[0]}
+  className={styles.input}
+  placeholder={window.innerWidth < 640 ? "dd/mm/aaaa" : undefined}
+/>
+
     </div>
 
     <div className="flex-1">
         <label className={styles.label}>Hasta:</label>
         <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            min={startDate || new Date().toISOString().split('T')[0]}
-            className={styles.input}
-        />
+  type="date"
+  value={endDate}
+  onChange={(e) => setEndDate(e.target.value)}
+  min={startDate || new Date().toISOString().split('T')[0]}
+  className={styles.input}
+  placeholder={window.innerWidth < 640 ? "dd/mm/aaaa" : undefined}
+/>
+
     </div>
 
     {/* 🔘 Botón de búsqueda */}
