@@ -152,22 +152,24 @@ if (!user || !user.isAuthenticated) {
         </ul>
 
         {/* Footer con botón login/registro */}
-        <div className="border-t border-white/20 p-6 text-center space-y-3">
-          <Link
-            to="/login"
-            className="group w-full flex items-center justify-center gap-2 px-4 py-3 text-sm text-white hover:text-gray-100 hover:bg-white/10 rounded-xl transition-all duration-300 border border-white/20 backdrop-blur-sm"
-          >
-            <User size={16} />
-            <span className="font-medium">Iniciar Sesión</span>
-          </Link>
-          <Link
-            to="/register"
-            className="group w-full flex items-center justify-center gap-2 px-4 py-3 text-sm text-white hover:text-gray-100 hover:bg-white/10 rounded-xl transition-all duration-300 border border-white/20 backdrop-blur-sm"
-          >
-            <Users size={16} />
-            <span className="font-medium">Registrarse</span>
-          </Link>
-        </div>
+        {/* Footer con botón login/registro */}
+<div className="border-t border-white/20 p-6 text-center space-y-3 pb-[env(safe-area-inset-bottom)]">
+  <Link
+    to="/login"
+    className="group w-full flex items-center justify-center gap-2 px-4 py-3 text-sm text-white hover:text-gray-100 hover:bg-white/10 rounded-xl transition-all duration-300 border border-white/20 backdrop-blur-sm"
+  >
+    <User size={16} />
+    <span className="font-medium">Iniciar Sesión</span>
+  </Link>
+  <Link
+    to="/register"
+    className="group w-full flex items-center justify-center gap-2 px-4 py-3 text-sm text-white hover:text-gray-100 hover:bg-white/10 rounded-xl transition-all duration-300 border border-white/20 backdrop-blur-sm"
+  >
+    <Users size={16} />
+    <span className="font-medium">Registrarse</span>
+  </Link>
+</div>
+
       </nav>
     </aside>
   );
