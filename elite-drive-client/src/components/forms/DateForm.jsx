@@ -106,25 +106,27 @@ const DateForm = ({ variant = 'default', onSearch }) => {
             <div className="flex-1">
                 <label className={styles.label}>Desde:</label>
                 <input
-                    type="date"
-                    placeholder={window.innerWidth < 640 ? "dd/mm/aaaa" : undefined}
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    min={minStartDate}
-                    className={styles.input}
-                />
+  type="date"
+  placeholder={window.innerWidth < 640 ? "dd/mm/aaaa" : undefined}
+  value={startDate}
+  onChange={(e) => setStartDate(e.target.value)}
+  min={minStartDate}
+  className={styles.input}
+/>
+
             </div>
 
             <div className="flex-1">
                 <label className={styles.label}>Hasta:</label>
                 <input
-                    type="date"
-                    placeholder={window.innerWidth < 640 ? "dd/mm/aaaa" : undefined}
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    min={startDate || minStartDate}
-                    className={styles.input}
-                />
+  type="date"
+  placeholder={window.innerWidth < 640 ? "dd/mm/aaaa" : undefined}
+  value={endDate}
+  onChange={(e) => setEndDate(e.target.value)}
+  min={startDate || minStartDate}
+  className={styles.input}
+/>
+
             </div>
 
             <button
